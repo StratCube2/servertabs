@@ -1,0 +1,22 @@
+accessWidener v2 named
+
+# ── JoinMultiplayerScreen ─────────────────────────────────────────────────────
+
+# (kept from original) pass lastScreen when recreating the screen if ever needed
+accessible field net/minecraft/client/gui/screens/multiplayer/JoinMultiplayerScreen lastScreen Lnet/minecraft/client/gui/screens/Screen;
+
+# TabDropdownController needs the live ServerSelectionList widget to call
+# updateOnlineServers on it directly (protected field → must be widened)
+accessible field net/minecraft/client/gui/screens/multiplayer/JoinMultiplayerScreen serverSelectionList Lnet/minecraft/client/gui/screens/multiplayer/ServerSelectionList;
+
+# TabDropdownController needs the raw ServerList to pass into updateOnlineServers
+# (private field → must be widened)
+accessible field net/minecraft/client/gui/screens/multiplayer/JoinMultiplayerScreen servers Lnet/minecraft/client/multiplayer/ServerList;
+
+# ── ServerSelectionList ───────────────────────────────────────────────────────
+
+# TabDropdownController calls this directly on tab switch instead of recreating
+# the whole screen.  Method is package-private → must be widened.
+accessible method net/minecraft/client/gui/screens/multiplayer/ServerSelectionList updateOnlineServers (Lnet/minecraft/client/multiplayer/ServerList;)V
+
+

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "servertabs",
+  "version": "${version}",
+  "name": "ServerTabs",
+  "description": "Adds tabbed organization to the multiplayer server list.",
+  "authors": [
+    "You"
+  ],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/servertabs/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.servertabs.ServerTabsMod"
+    ],
+    "client": [
+      "com.servertabs.ServerTabsClient"
+    ]
+  },
+  "mixins": [
+    "servertabs.mixins.json"
+  ],
+  "accessWidener": "servertabs.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.18.2",
+    "fabric-api": "*",
+    "minecraft": "~1.21.11"
+  }
+}
