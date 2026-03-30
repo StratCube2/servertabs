@@ -53,6 +53,7 @@ public class ServerTabsSettingsScreen extends Screen {
     private Button sortBtn;
     private Button defaultTabBtn;
     private Button rememberTabBtn;
+    private Button assignOnAddBtn;
 
     // -----------------------------------------------------------------------
     //  Constructor
@@ -169,6 +170,17 @@ public class ServerTabsSettingsScreen extends Screen {
                 .build();
         this.addRenderableWidget(rememberTabBtn);
 
+        assignOnAddBtn = Button.builder(
+                Component.literal(assignOnAddLabel()),
+                btn -> {
+                    TabConfig.getInstance().setAssignOnAdd(
+                            !TabConfig.getInstance().isAssignOnAdd());
+                    btn.setMessage(Component.literal(assignOnAddLabel()));
+                })
+                .bounds(rBtnX, rightY + 122, rBtnW, 14)
+                .build();
+        this.addRenderableWidget(assignOnAddBtn);
+
         // ---- Done button ----
         this.addRenderableWidget(Button.builder(
                 Component.literal("Done"),
@@ -230,6 +242,7 @@ public class ServerTabsSettingsScreen extends Screen {
         g.drawString(this.font, "Sort By:",  lx, rightY + 65, 0xFF000000 | 0xCCCCCC, false);
         g.drawString(this.font, "Default:",  lx, rightY + 85, 0xFF000000 | 0xCCCCCC, false);
         g.drawString(this.font, "Rem. Tab:", lx, rightY + 105, 0xFF000000 | 0xCCCCCC, false);
+        g.drawString(this.font, "Assign+Add:", lx, rightY + 125, 0xFF000000 | 0xCCCCCC, false);
 
         // Tab list rows
         drawTabList(g, mx, my);
@@ -430,6 +443,10 @@ public class ServerTabsSettingsScreen extends Screen {
 
     private String rememberTabLabel() {
         return TabConfig.getInstance().isRememberTab() ? "ON" : "OFF";
+    }
+
+    private String assignOnAddLabel() {
+        return TabConfig.getInstance().isAssignOnAdd() ? "ON" : "OFF";
     }
 
     private void cycleDefaultTab() {

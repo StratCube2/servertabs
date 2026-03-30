@@ -62,6 +62,7 @@ public class TabConfig {
     private SortingType              sortingType          = SortingType.NONE;
     private String                   defaultTabId         = "all";
     private boolean                  rememberTab          = true;
+    private boolean                  assignOnAdd          = true;
     private Map<String, Set<String>> serverTabAssignments = new HashMap<>();
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -88,6 +89,7 @@ public class TabConfig {
             if (obj.has("sortingType"))      sortingType     = SortingType.valueOf(obj.get("sortingType").getAsString());
             if (obj.has("defaultTabId"))     defaultTabId    = obj.get("defaultTabId").getAsString();
             if (obj.has("rememberTab"))      rememberTab     = obj.get("rememberTab").getAsBoolean();
+            if (obj.has("assignOnAdd"))      assignOnAdd     = obj.get("assignOnAdd").getAsBoolean();
             serverTabAssignments.clear();
             if (obj.has("serverTabAssignments")) {
                 JsonObject a = obj.getAsJsonObject("serverTabAssignments");
@@ -113,6 +115,7 @@ public class TabConfig {
             obj.addProperty("sortingType",     sortingType.name());
             obj.addProperty("defaultTabId",    defaultTabId);
             obj.addProperty("rememberTab",     rememberTab);
+            obj.addProperty("assignOnAdd",     assignOnAdd);
             JsonObject a = new JsonObject();
             for (Map.Entry<String, Set<String>> e : serverTabAssignments.entrySet())
                 a.add(e.getKey(), GSON.toJsonTree(e.getValue()));
@@ -133,6 +136,7 @@ public class TabConfig {
         sortingType          = SortingType.NONE;
         defaultTabId         = "all";
         rememberTab          = true;
+        assignOnAdd          = true;
         serverTabAssignments = new HashMap<>();
     }
 
@@ -151,6 +155,7 @@ public class TabConfig {
     public SortingType     getSortingType()     { return sortingType; }
     public String          getDefaultTabId()    { return defaultTabId; }
     public boolean         isRememberTab()      { return rememberTab; }
+    public boolean         isAssignOnAdd()      { return assignOnAdd; }
 
     public TabEntry getDefaultTab() {
         return tabs.stream().filter(t -> t.getId().equals(defaultTabId))
@@ -166,6 +171,7 @@ public class TabConfig {
     public void setSortingType(SortingType v)         { sortingType = v;     save(); }
     public void setDefaultTabId(String v)             { defaultTabId = v;    save(); }
     public void setRememberTab(boolean v)             { rememberTab = v;     save(); }
+    public void setAssignOnAdd(boolean v)             { assignOnAdd = v;     save(); }
 
     // -----------------------------------------------------------------------
     //  Tab mutations
