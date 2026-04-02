@@ -5,7 +5,7 @@ import com.servertabs.TabEntry;
 import com.servertabs.TabSessionState;
 import com.servertabs.ServerTabsMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -154,7 +154,7 @@ public class TabDropdownController {
     //  Render
     // -----------------------------------------------------------------------
 
-    public void onRender(Screen s, GuiGraphics gfx, int mouseX, int mouseY, float delta) {
+    public void onRender(Screen s, GuiGraphicsExtractor gfx, int mouseX, int mouseY, float delta) {
 
         // ── Quick Assign overlay ────────────────────────────────────────────
         if (quickAssignMode) {
@@ -211,7 +211,7 @@ public class TabDropdownController {
             gfx.fill(tabX,            tabY,                  tabX + 1,    tabY + TAB_HEIGHT,     borderC);
             gfx.fill(tabX + tabW - 1, tabY,                  tabX + tabW, tabY + TAB_HEIGHT,     borderC);
 
-            gfx.drawString(
+            gfx.text(
                     Minecraft.getInstance().font,
                     tab.getName(),
                     tabX + 6,
@@ -221,7 +221,7 @@ public class TabDropdownController {
 
             // Alt+click hint — shown on hovered non-active non-locked tabs while in "all"
             if (isHovered && !isActive && !tab.isLocked() && "all".equals(activeTabId)) {
-                gfx.drawString(
+                gfx.text(
                         Minecraft.getInstance().font,
                         "[Alt]",
                         tabX + tabW - 28,
@@ -236,7 +236,7 @@ public class TabDropdownController {
      * Draws a checkbox column overlaid on the left edge of each server row
      * in the ServerSelectionList.
      */
-    private void renderQuickAssignOverlay(GuiGraphics gfx, int mouseX, int mouseY) {
+    private void renderQuickAssignOverlay(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
         JoinMultiplayerScreen jms = (JoinMultiplayerScreen) screen;
         ServerList            sl  = jms.servers;
         ServerSelectionList   ssl = jms.serverSelectionList;
@@ -250,7 +250,7 @@ public class TabDropdownController {
                 .filter(t -> t.getId().equals(quickAssignTabId))
                 .findFirst().orElse(null);
         String header = "Quick Assign \u2192 " + (target != null ? target.getName() : "?");
-        gfx.drawString(Minecraft.getInstance().font, header,
+        gfx.text(Minecraft.getInstance().font, header,
                 4, 28, 0xFF000000 | 0xFFDD44, false);
 
         for (int i = 0; i < count; i++) {

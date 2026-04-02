@@ -26,7 +26,7 @@ public class ServerTabsClient implements ClientModInitializer {
      * Tracks controllers by JoinMultiplayerScreen INSTANCE.
      * WeakHashMap: when the screen is GC'd the entry is removed automatically.
      *
-     * Events (afterRender, allowMouseClick) are registered only once per
+     * Events (afterExtractRenderState, allowMouseClick) are registered only once per
      * screen instance — this prevents duplicate listeners on reinit.
      */
     private static final WeakHashMap<Screen, TabDropdownController> controllers
@@ -67,7 +67,7 @@ public class ServerTabsClient implements ClientModInitializer {
                 if (controller == null) {
                     controller = new TabDropdownController(screen);
                     controllers.put(screen, controller);
-                    ScreenEvents.afterRender(screen).register(controller::onRender);
+                    ScreenEvents.afterExtract(screen).register(controller::onRender);
                     ScreenMouseEvents.allowMouseClick(screen).register(controller::onMouseClick);
 
                     // Feature 4: Alt+W (prev tab) / Alt+S (next tab)
@@ -82,7 +82,7 @@ public class ServerTabsClient implements ClientModInitializer {
                 }
 
                 // createToggleButton() resets panelOpen/slideProgress (bug 1 fix)
-                Screens.getButtons(screen).add(controller.createToggleButton());
+                Screens.getWidgets(screen).add(controller.createToggleButton());
 
                 // ── Feature 3: Assign on Add ─────────────────────────────
                 // Check if a new server was just added by comparing the full
@@ -155,7 +155,7 @@ public class ServerTabsClient implements ClientModInitializer {
                         })
                         .bounds(scaledWidth / 2 + 4 + 105, 10, 100, 16)
                         .build();
-                Screens.getButtons(screen).add(assignBtn);
+                Screens.getWidgets(screen).add(assignBtn);
             }
         });
     }

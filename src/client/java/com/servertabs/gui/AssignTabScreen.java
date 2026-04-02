@@ -2,7 +2,7 @@ package com.servertabs.gui;
 
 import com.servertabs.TabConfig;
 import com.servertabs.TabEntry;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -52,8 +52,8 @@ public class AssignTabScreen extends Screen {
     // -----------------------------------------------------------------------
 
     @Override
-    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
-        super.renderBackground(g, mx, my, pt);
+    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractBackground(g, mx, my, pt);
 
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;
@@ -69,8 +69,8 @@ public class AssignTabScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float pt) {
-        super.render(g, mx, my, pt);
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractRenderState(g, mx, my, pt);
 
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;
@@ -78,19 +78,19 @@ public class AssignTabScreen extends Screen {
         int py     = (this.height - panelH)  / 2;
 
         // Title
-        g.drawCenteredString(this.font, this.title, this.width / 2, py + 5, 0xFFFFFFFF);
+        g.centeredText(this.font, this.title, this.width / 2, py + 5, 0xFFFFFFFF);
 
         // Server subtitle
         String subtitle = serverName.isEmpty() ? serverIp : serverName + "  (" + serverIp + ")";
         if (this.font.width(subtitle) > PANEL_W - 16) {
             subtitle = this.font.plainSubstrByWidth(subtitle, PANEL_W - 16) + "…";
         }
-        g.drawCenteredString(this.font, Component.literal(subtitle),
+        g.centeredText(this.font, Component.literal(subtitle),
                 this.width / 2, py + 22, 0xFF000000 | 0x888888);
 
         // Warning if IP is empty
         if (serverIp.isEmpty()) {
-            g.drawCenteredString(this.font,
+            g.centeredText(this.font,
                     Component.literal("Fill in the server IP first!"),
                     this.width / 2, py + 40, 0xFFFF5555);
             return;
@@ -128,13 +128,13 @@ public class AssignTabScreen extends Screen {
             int textColor = locked  ? 0xFF000000 | 0xFFDD88
                           : checked ? 0xFF000000 | 0xFFFFFF
                           :           0xFF000000 | 0xAAAAAA;
-            g.drawString(this.font, tab.getName(),
+            g.text(this.font, tab.getName(),
                     labelX, rowY + (ROW_H - 8) / 2, textColor, false);
 
             // "(always)" badge on the locked All tab
             if (locked) {
                 int badge = labelX + this.font.width(tab.getName()) + 5;
-                g.drawString(this.font, "(always)", badge,
+                g.text(this.font, "(always)", badge,
                         rowY + (ROW_H - 8) / 2, 0xFF000000 | 0x555555, false);
             }
         }

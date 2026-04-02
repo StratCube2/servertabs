@@ -2,7 +2,7 @@ package com.servertabs.gui;
 
 import com.servertabs.TabConfig;
 import com.servertabs.TabEntry;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -197,12 +197,12 @@ public class ServerTabsSettingsScreen extends Screen {
 
     /**
      * Panel backgrounds are drawn here — before widgets — by overriding
-     * renderBackground(). super.renderBackground() fires the blur exactly once.
+     * renderBackground(). super.extractBackground() fires the blur exactly once.
      */
     // FIX 1: changed "protected" → "public" to match the parent class signature
     @Override
-    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
-        super.renderBackground(g, mx, my, pt);
+    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractBackground(g, mx, my, pt);
 
         drawPanel(g, leftX,  leftY,  leftW,  leftH);
         drawPanel(g, rightX, rightY, rightW, rightH);
@@ -216,7 +216,7 @@ public class ServerTabsSettingsScreen extends Screen {
                leftX + leftW - 1, leftY + leftH - 21, DIVIDER);
     }
 
-    private void drawPanel(GuiGraphics g, int x, int y, int w, int h) {
+    private void drawPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
         g.fill(x,         y,         x + w,     y + h,     PANEL_BG);
         g.fill(x,         y,         x + w,     y + 1,     PANEL_BORDER);
         g.fill(x,         y + h - 1, x + w,     y + h,     PANEL_BORDER);
@@ -225,24 +225,24 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float pt) {
-        super.render(g, mx, my, pt); // panels + all widgets drawn
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractRenderState(g, mx, my, pt); // panels + all widgets drawn
 
         // Screen title
-        g.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFF000000 | 0xFFFFFF);
+        g.centeredText(this.font, this.title, this.width / 2, 8, 0xFF000000 | 0xFFFFFF);
 
         // Panel headers
-        g.drawString(this.font, "Tabs",     leftX  + 4, leftY  + 4, 0xFF000000 | 0xFFFFFF, false);
-        g.drawString(this.font, "Settings", rightX + 4, rightY + 4, 0xFF000000 | 0xFFFFFF, false);
+        g.text(this.font, "Tabs",     leftX  + 4, leftY  + 4, 0xFF000000 | 0xFFFFFF, false);
+        g.text(this.font, "Settings", rightX + 4, rightY + 4, 0xFF000000 | 0xFFFFFF, false);
 
         // Right-panel setting labels
         int lx = rightX + 5;
-        g.drawString(this.font, "Dropdown:", lx, rightY + 25, 0xFF000000 | 0xCCCCCC, false);
-        g.drawString(this.font, "Speed:",    lx, rightY + 45, 0xFF000000 | 0xCCCCCC, false);
-        g.drawString(this.font, "Sort By:",  lx, rightY + 65, 0xFF000000 | 0xCCCCCC, false);
-        g.drawString(this.font, "Default:",  lx, rightY + 85, 0xFF000000 | 0xCCCCCC, false);
-        g.drawString(this.font, "Rem. Tab:", lx, rightY + 105, 0xFF000000 | 0xCCCCCC, false);
-        g.drawString(this.font, "Assign+Add:", lx, rightY + 125, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Dropdown:", lx, rightY + 25, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Speed:",    lx, rightY + 45, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Sort By:",  lx, rightY + 65, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Default:",  lx, rightY + 85, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Rem. Tab:", lx, rightY + 105, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Assign+Add:", lx, rightY + 125, 0xFF000000 | 0xCCCCCC, false);
 
         // Tab list rows
         drawTabList(g, mx, my);
@@ -251,7 +251,7 @@ public class ServerTabsSettingsScreen extends Screen {
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         if (selectedIndex > 0 && selectedIndex < tabs.size()
                 && !tabs.get(selectedIndex).isLocked()) {
-            g.drawCenteredString(this.font,
+            g.centeredText(this.font,
                     Component.literal("Alt + \u2191\u2193 to reorder"),
                     leftX + leftW / 2,
                     leftY + leftH - 34,
@@ -259,7 +259,7 @@ public class ServerTabsSettingsScreen extends Screen {
         }
     }
 
-    private void drawTabList(GuiGraphics g, int mx, int my) {
+    private void drawTabList(GuiGraphicsExtractor g, int mx, int my) {
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         int visibleRows = listH / ROW_H;
         int maxScroll   = Math.max(0, tabs.size() - visibleRows);
@@ -292,17 +292,17 @@ public class ServerTabsSettingsScreen extends Screen {
             int    textColor = tab.isLocked()
                              ? (isSelected ? 0xFF000000 | 0xFFFFAA : 0xFF000000 | 0xFFDD88)
                              : (isSelected ? 0xFF000000 | 0xFFFFFF : 0xFF000000 | 0xCCCCCC);
-            g.drawString(this.font, label,
+            g.text(this.font, label,
                     rowX + 6, rowY + (ROW_H - 8) / 2, textColor, false);
         }
 
         // Scroll arrows
         if (scrollOffset > 0) {
-            g.drawString(this.font, "\u25B2",
+            g.text(this.font, "\u25B2",
                     leftX + leftW - 10, listY + 2, 0xFF000000 | 0x888888, false);
         }
         if (scrollOffset < maxScroll) {
-            g.drawString(this.font, "\u25BC",
+            g.text(this.font, "\u25BC",
                     leftX + leftW - 10, listY + listH - 10, 0xFF000000 | 0x888888, false);
         }
     }

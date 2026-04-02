@@ -1,6 +1,6 @@
 package com.servertabs.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -79,8 +79,8 @@ public class TabNamePopupScreen extends Screen {
 
     // FIX 1: changed "protected" → "public" to match the parent class signature
     @Override
-    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
-        super.renderBackground(g, mx, my, pt); // single blur call
+    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractBackground(g, mx, my, pt); // single blur call
 
         int px = (this.width  - POPUP_W) / 2;
         int py = (this.height - POPUP_H) / 2;
@@ -95,11 +95,11 @@ public class TabNamePopupScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics g, int mx, int my, float pt) {
-        super.render(g, mx, my, pt); // background + widgets
+    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
+        super.extractRenderState(g, mx, my, pt); // background + widgets
 
         int py = (this.height - POPUP_H) / 2;
-        g.drawCenteredString(this.font, this.title, this.width / 2, py + 8, 0xFF000000 | 0xFFFFFF);
+        g.centeredText(this.font, this.title, this.width / 2, py + 8, 0xFF000000 | 0xFFFFFF);
     }
 
     // -----------------------------------------------------------------------
