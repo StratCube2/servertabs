@@ -39,16 +39,6 @@ The mod includes a dedicated settings menu accessible via the Multiplayer screen
 * Rename or delete existing tabs.
 * Customize visual preferences.
 
-*(Note: Check the `.minecraft/config` folder for advanced configuration files if available.)*
-
-## 📸 Screenshots
-
-| Main Menu | Settings | Tab Organization |
-| :---: | :---: | :---: |
-| ![Screenshot 1](https://via.placeholder.com/200x120?text=Main+Menu) | ![Screenshot 2](https://via.placeholder.com/200x120?text=Settings) | ![Screenshot 3](https://via.placeholder.com/200x120?text=Tabs) |
-
-> *Tip: Replace these placeholders with real screenshots from your mod to make your GitHub page pop!*
-
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/StratCube2/servertabs/issues).
