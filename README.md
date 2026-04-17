@@ -1,2 +1,0 @@
-# servertabs
-manage servers efficiently.
