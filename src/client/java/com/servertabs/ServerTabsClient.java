@@ -1,7 +1,9 @@
 package com.servertabs;
 
 import com.servertabs.gui.AssignTabScreen;
+import com.servertabs.gui.AssignWorldTabScreen;
 import com.servertabs.gui.TabDropdownController;
+import com.servertabs.gui.WorldTabDropdownController;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
@@ -11,43 +13,21 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
-import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
 
 import org.lwjgl.glfw.GLFW;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.WeakHashMap;
 
 public class ServerTabsClient implements ClientModInitializer {
 
-    /**
-     * Tracks controllers by JoinMultiplayerScreen INSTANCE.
-     * WeakHashMap: when the screen is GC'd the entry is removed automatically.
-     *
-     * Events (afterExtractRenderState, allowMouseClick) are registered only once per
-     * screen instance — this prevents duplicate listeners on reinit.
-     */
-    private static final WeakHashMap<Screen, TabDropdownController> controllers
-            = new WeakHashMap<>();
+    private static final WeakHashMap<Screen, TabDropdownController> controllers = new WeakHashMap<>();
+    private static final WeakHashMap<Screen, WorldTabDropdownController> worldControllers = new WeakHashMap<>();
+    private static final WeakHashMap<Screen, Boolean> injectedScreens = new WeakHashMap<>();
 
-    /**
-     * Tracks which non-JMS screens have already received our injected button,
-     * to prevent adding duplicates when the screen reinits (e.g. returning
-     * from AssignTabScreen back to EditServerScreen).
-     *
-     * Bug 1 root fix: without this, AFTER_INIT fires again on EditServerScreen
-     * after AssignTabScreen closes, adding a second "Assign Tab" button and
-     * leaving the screen in an inconsistent state that breaks the JMS dropdown.
-     */
-    private static final WeakHashMap<Screen, Boolean> injectedScreens
-            = new WeakHashMap<>();
-
-    /**
-     * Tracks server count as of the last JMS init, so we can detect when a
-     * new server was just added (Feature 3: Assign on Add).
-     */
     private static int lastKnownServerCount = -1;
 
     @Override
@@ -61,16 +41,14 @@ public class ServerTabsClient implements ClientModInitializer {
             // Multiplayer server list
             // ----------------------------------------------------------------
             if (screen instanceof JoinMultiplayerScreen jms) {
-
-                // Reuse or create the controller for this screen instance
                 TabDropdownController controller = controllers.get(screen);
                 if (controller == null) {
                     controller = new TabDropdownController(screen);
                     controllers.put(screen, controller);
+                    
                     ScreenEvents.afterExtract(screen).register(controller::onRender);
                     ScreenMouseEvents.allowMouseClick(screen).register(controller::onMouseClick);
 
-                    // Feature 4: Alt+W (prev tab) / Alt+S (next tab)
                     final TabDropdownController ctrl = controller;
                     ScreenKeyboardEvents.allowKeyPress(screen).register((s, keyEvent) -> {
                         if ((keyEvent.modifiers() & GLFW.GLFW_MOD_ALT) != 0) {
@@ -81,67 +59,76 @@ public class ServerTabsClient implements ClientModInitializer {
                     });
                 }
 
-                // createToggleButton() resets panelOpen/slideProgress (bug 1 fix)
-                Screens.getWidgets(screen).add(controller.createToggleButton());
+                controller.setupWidgets(screen);
 
-                // ── Feature 3: Assign on Add ─────────────────────────────
-                // Check if a new server was just added by comparing the full
-                // (unfiltered) server count to what we saw last time.
                 if (TabConfig.getInstance().isAssignOnAdd()) {
                     ServerList servers = jms.servers;
                     if (servers != null) {
-                        servers.load(); // get full unfiltered count
+                        servers.load(); 
                         int currentCount = servers.size();
-
-                        if (lastKnownServerCount >= 0
-                                && currentCount > lastKnownServerCount) {
-                            // A new server was added — get the last entry
+                        if (lastKnownServerCount >= 0 && currentCount > lastKnownServerCount) {
                             ServerData newest = servers.get(currentCount - 1);
                             if (newest != null) {
                                 String ip   = newest.ip   != null ? newest.ip.trim()   : "";
                                 String name = newest.name != null ? newest.name.trim() : "";
-                                // Navigate to AssignTabScreen for the new server.
-                                // We post this via setScreen so the JMS fully
-                                // finishes initializing before we navigate away.
                                 final Screen jmsScreen = screen;
-                                client.execute(() ->
-                                    client.setScreen(new AssignTabScreen(jmsScreen, ip, name))
-                                );
+                                client.execute(() -> client.setScreen(new AssignTabScreen(jmsScreen, ip, name)));
                                 lastKnownServerCount = currentCount;
-                                return; // skip applyTabFilter — we're navigating away
+                                return; 
                             }
                         }
                         lastKnownServerCount = currentCount;
                     }
                 }
 
-                // Apply the active tab filter
                 TabDropdownController.applyTabFilter(jms, TabSessionState.getActiveTabId());
                 return;
             }
 
             // ----------------------------------------------------------------
-            // Main menu — reset tab + server count tracking if rememberTab OFF
+            // Singleplayer World List
             // ----------------------------------------------------------------
-            if (screen instanceof TitleScreen) {
-                if (!TabConfig.getInstance().isRememberTab()) {
-                    TabSessionState.resetToDefault();
+            if (screen.getClass().getSimpleName().equals("SelectWorldScreen")) {
+                if (!TabConfig.getInstance().isWorldTabsEnabled()) return;
+
+                WorldTabDropdownController controller = worldControllers.get(screen);
+                if (controller == null) {
+                    controller = new WorldTabDropdownController(screen);
+                    worldControllers.put(screen, controller);
+                    
+                    ScreenEvents.afterExtract(screen).register(controller::onRender);
+                    ScreenMouseEvents.allowMouseClick(screen).register(controller::onMouseClick);
+
+                    final WorldTabDropdownController ctrl = controller;
+                    ScreenKeyboardEvents.allowKeyPress(screen).register((s, keyEvent) -> {
+                        if ((keyEvent.modifiers() & GLFW.GLFW_MOD_ALT) != 0) {
+                            if (keyEvent.key() == GLFW.GLFW_KEY_W) { ctrl.switchTab(-1); return false; }
+                            if (keyEvent.key() == GLFW.GLFW_KEY_S) { ctrl.switchTab(+1); return false; }
+                        }
+                        return true;
+                    });
                 }
-                // Reset server count so we don't false-positive on next JMS open
-                lastKnownServerCount = -1;
+
+                controller.setupWidgets(screen);
+                controller.applyTabFilter(WorldTabSessionState.getActiveTabId());
                 return;
             }
 
             // ----------------------------------------------------------------
-            // Add/Edit server screen — inject "Assign Tab" button (once only)
-            //
-            // Bug 1 fix: we track which screen instances have already been
-            // injected. Without this, returning from AssignTabScreen causes
-            // AFTER_INIT to fire again on EditServerScreen, adding a second
-            // button and corrupting state that breaks the JMS tab dropdown.
+            // Main menu 
             // ----------------------------------------------------------------
+            if (screen instanceof TitleScreen) {
+                if (!TabConfig.getInstance().isRememberTab()) TabSessionState.resetToDefault();
+                if (!TabConfig.getInstance().isWorldRememberTab()) WorldTabSessionState.resetToDefault();
+                lastKnownServerCount = -1;
+                return;
+            }
+
             if (injectedScreens.containsKey(screen)) return;
 
+            // ----------------------------------------------------------------
+            // Add/Edit server screen injection
+            // ----------------------------------------------------------------
             ServerData serverData = findServerData(screen);
             if (serverData != null) {
                 injectedScreens.put(screen, Boolean.TRUE);
@@ -156,29 +143,69 @@ public class ServerTabsClient implements ClientModInitializer {
                         .bounds(scaledWidth / 2 + 4 + 105, 10, 100, 16)
                         .build();
                 Screens.getWidgets(screen).add(assignBtn);
+                return;
+            }
+
+            // ----------------------------------------------------------------
+            // World Editing screen injection
+            // ----------------------------------------------------------------
+            if (screen.getClass().getSimpleName().equals("EditWorldScreen")) {
+                if (!TabConfig.getInstance().isWorldTabsEnabled()) return;
+
+                String[] worldData = findWorldData(screen);
+                if (worldData != null) {
+                    injectedScreens.put(screen, Boolean.TRUE);
+                    final String wId   = worldData[0];
+                    final String wName = worldData[1];
+                    
+                    Button assignBtn = Button.builder(
+                            Component.literal("Assign Tab"),
+                            btn -> {
+                                client.setScreen(new AssignWorldTabScreen(screen, wId, wName));
+                            })
+                            .bounds(scaledWidth / 2 + 4 + 105, 10, 100, 16)
+                            .build();
+                    Screens.getWidgets(screen).add(assignBtn);
+                }
             }
         });
     }
 
-    // -----------------------------------------------------------------------
-    //  Reflection helper — find ServerData on any screen (for Assign Tab btn)
-    // -----------------------------------------------------------------------
-
     private static ServerData findServerData(Screen screen) {
-        Class<?> cls = screen.getClass();
-        while (cls != null && cls != Object.class) {
-            for (Field f : cls.getDeclaredFields()) {
-                if (f.getType() == ServerData.class) {
-                    try {
+        try {
+            Class<?> cls = screen.getClass();
+            while (cls != null && cls != Object.class) {
+                for (Field f : cls.getDeclaredFields()) {
+                    if (f.getType() == ServerData.class) {
                         f.setAccessible(true);
                         return (ServerData) f.get(screen);
-                    } catch (Exception e) {
-                        return null;
                     }
                 }
+                cls = cls.getSuperclass();
             }
-            cls = cls.getSuperclass();
-        }
+        } catch (Exception e) {}
+        return null;
+    }
+
+    private static String[] findWorldData(Screen screen) {
+        try {
+            Class<?> cls = screen.getClass();
+            while (cls != null && cls != Object.class) {
+                for (Field f : cls.getDeclaredFields()) {
+                    if (f.getType().getSimpleName().equals("LevelSummary")) {
+                        f.setAccessible(true);
+                        Object summary = f.get(screen);
+                        if (summary == null) continue;
+                        
+                        String id = WorldTabDropdownController.getLevelIdSafe(summary);
+                        String name = WorldTabDropdownController.getLevelNameSafe(summary);
+                        
+                        return new String[] { id, name };
+                    }
+                }
+                cls = cls.getSuperclass();
+            }
+        } catch (Exception e) {}
         return null;
     }
 }

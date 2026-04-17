@@ -8,11 +8,11 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW; 
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
-public class ServerTabsSettingsScreen extends Screen {
+public class WorldTabsSettingsScreen extends Screen {
 
     private static final int ROW_H        = 18;
     private static final int PANEL_BORDER = 0xFF555555;
@@ -30,18 +30,15 @@ public class ServerTabsSettingsScreen extends Screen {
 
     private Button editBtn;
     private Button deleteBtn;
-    
     private Button dropdownBtn;
-    private Button worldTabsBtn;
-    private Button worldTabsGearBtn;
     private Button speedBtn;
     private Button sortBtn;
     private Button defaultTabBtn;
     private Button rememberTabBtn;
     private Button assignOnAddBtn;
 
-    public ServerTabsSettingsScreen(Screen parent) {
-        super(Component.literal("ServerTabs Settings"));
+    public WorldTabsSettingsScreen(Screen parent) {
+        super(Component.literal("WorldTabs Settings"));
         this.parent = parent;
     }
 
@@ -58,8 +55,10 @@ public class ServerTabsSettingsScreen extends Screen {
         int btnGap = 2;
 
         this.addRenderableWidget(Button.builder(Component.literal("Add"), btn -> openAddPopup()).bounds(leftX + 2, btnY, btnW, 16).build());
+
         editBtn = Button.builder(Component.literal("Edit"), btn -> openEditPopup()).bounds(leftX + 2 + btnW + btnGap, btnY, btnW, 16).build();
         this.addRenderableWidget(editBtn);
+
         deleteBtn = Button.builder(Component.literal("Delete"), btn -> deleteSelected()).bounds(leftX + 2 + (btnW + btnGap) * 2, btnY, btnW, 16).build();
         this.addRenderableWidget(deleteBtn);
 
@@ -67,54 +66,41 @@ public class ServerTabsSettingsScreen extends Screen {
         int rBtnW = rightW / 2 - 4;
 
         dropdownBtn = Button.builder(Component.literal(dropdownLabel()), btn -> {
-            TabConfig.getInstance().setDropdownEnabled(!TabConfig.getInstance().isDropdownEnabled());
+            TabConfig.getInstance().setWorldDropdownEnabled(!TabConfig.getInstance().isWorldDropdownEnabled());
             btn.setMessage(Component.literal(dropdownLabel()));
         }).bounds(rBtnX, rightY + 22, rBtnW, 14).build();
         this.addRenderableWidget(dropdownBtn);
 
-        // --- NEW WORLD TABS CONFIGURATION ROW ---
-        worldTabsBtn = Button.builder(Component.literal(worldTabsLabel()), btn -> {
-            TabConfig.getInstance().setWorldTabsEnabled(!TabConfig.getInstance().isWorldTabsEnabled());
-            btn.setMessage(Component.literal(worldTabsLabel()));
-        }).bounds(rBtnX, rightY + 42, rBtnW, 14).build();
-        this.addRenderableWidget(worldTabsBtn);
-
-        worldTabsGearBtn = Button.builder(Component.literal("\u2699"), btn -> {
-            this.minecraft.setScreen(new WorldTabsSettingsScreen(this));
-        }).bounds(rBtnX - 18, rightY + 42, 16, 14).build();
-        this.addRenderableWidget(worldTabsGearBtn);
-        // ----------------------------------------
-
-        speedBtn = Button.builder(Component.literal(TabConfig.getInstance().getTransitionSpeed().label), btn -> {
-            TabConfig.TransitionSpeed next = TabConfig.getInstance().getTransitionSpeed().next();
-            TabConfig.getInstance().setTransitionSpeed(next);
+        speedBtn = Button.builder(Component.literal(TabConfig.getInstance().getWorldTransitionSpeed().label), btn -> {
+            TabConfig.TransitionSpeed next = TabConfig.getInstance().getWorldTransitionSpeed().next();
+            TabConfig.getInstance().setWorldTransitionSpeed(next);
             btn.setMessage(Component.literal(next.label));
-        }).bounds(rBtnX, rightY + 62, rBtnW, 14).build();
+        }).bounds(rBtnX, rightY + 42, rBtnW, 14).build();
         this.addRenderableWidget(speedBtn);
 
-        sortBtn = Button.builder(Component.literal(TabConfig.getInstance().getSortingType().label), btn -> {
-            TabConfig.SortingType next = TabConfig.getInstance().getSortingType().next();
-            TabConfig.getInstance().setSortingType(next);
+        sortBtn = Button.builder(Component.literal(TabConfig.getInstance().getWorldSortingType().label), btn -> {
+            TabConfig.WorldSortingType next = TabConfig.getInstance().getWorldSortingType().next();
+            TabConfig.getInstance().setWorldSortingType(next);
             btn.setMessage(Component.literal(next.label));
-        }).bounds(rBtnX, rightY + 82, rBtnW, 14).build();
+        }).bounds(rBtnX, rightY + 62, rBtnW, 14).build();
         this.addRenderableWidget(sortBtn);
 
         defaultTabBtn = Button.builder(Component.literal(defaultTabLabel()), btn -> {
             cycleDefaultTab();
             btn.setMessage(Component.literal(defaultTabLabel()));
-        }).bounds(rBtnX, rightY + 102, rBtnW, 14).build();
+        }).bounds(rBtnX, rightY + 82, rBtnW, 14).build();
         this.addRenderableWidget(defaultTabBtn);
 
         rememberTabBtn = Button.builder(Component.literal(rememberTabLabel()), btn -> {
-            TabConfig.getInstance().setRememberTab(!TabConfig.getInstance().isRememberTab());
+            TabConfig.getInstance().setWorldRememberTab(!TabConfig.getInstance().isWorldRememberTab());
             btn.setMessage(Component.literal(rememberTabLabel()));
-        }).bounds(rBtnX, rightY + 122, rBtnW, 14).build();
+        }).bounds(rBtnX, rightY + 102, rBtnW, 14).build();
         this.addRenderableWidget(rememberTabBtn);
 
         assignOnAddBtn = Button.builder(Component.literal(assignOnAddLabel()), btn -> {
-            TabConfig.getInstance().setAssignOnAdd(!TabConfig.getInstance().isAssignOnAdd());
+            TabConfig.getInstance().setWorldAssignOnAdd(!TabConfig.getInstance().isWorldAssignOnAdd());
             btn.setMessage(Component.literal(assignOnAddLabel()));
-        }).bounds(rBtnX, rightY + 142, rBtnW, 14).build();
+        }).bounds(rBtnX, rightY + 122, rBtnW, 14).build();
         this.addRenderableWidget(assignOnAddBtn);
 
         this.addRenderableWidget(Button.builder(Component.literal("Done"), btn -> this.minecraft.setScreen(parent)).bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
@@ -144,28 +130,27 @@ public class ServerTabsSettingsScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
         super.extractRenderState(g, mx, my, pt);
         g.centeredText(this.font, this.title, this.width / 2, 8, 0xFF000000 | 0xFFFFFF);
-        g.text(this.font, "Tabs", leftX + 4, leftY + 4, 0xFF000000 | 0xFFFFFF, false);
+        g.text(this.font, "World Tabs", leftX + 4, leftY + 4, 0xFF000000 | 0xFFFFFF, false);
         g.text(this.font, "Settings", rightX + 4, rightY + 4, 0xFF000000 | 0xFFFFFF, false);
 
         int lx = rightX + 5;
-        g.text(this.font, "Dropdown:",  lx, rightY + 25, 0xFF000000 | 0xCCCCCC, false);
-        g.text(this.font, "WorldTabs:", lx, rightY + 45, 0xFF000000 | 0xCCCCCC, false);
-        g.text(this.font, "Speed:",     lx, rightY + 65, 0xFF000000 | 0xCCCCCC, false);
-        g.text(this.font, "Sort By:",   lx, rightY + 85, 0xFF000000 | 0xCCCCCC, false);
-        g.text(this.font, "Default:",   lx, rightY + 105, 0xFF000000 | 0xCCCCCC, false);
-        g.text(this.font, "Rem. Tab:",  lx, rightY + 125, 0xFF000000 | 0xCCCCCC, false);
-        g.text(this.font, "Assign+Add:",lx, rightY + 145, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Dropdown:", lx, rightY + 25, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Speed:",    lx, rightY + 45, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Sort By:",  lx, rightY + 65, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Default:",  lx, rightY + 85, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Rem. Tab:", lx, rightY + 105, 0xFF000000 | 0xCCCCCC, false);
+        g.text(this.font, "Assign+Add:", lx, rightY + 125, 0xFF000000 | 0xCCCCCC, false);
 
         drawTabList(g, mx, my);
 
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         if (selectedIndex > 0 && selectedIndex < tabs.size() && !tabs.get(selectedIndex).isLocked()) {
             g.centeredText(this.font, Component.literal("Alt + \u2191\u2193 to reorder"), leftX + leftW / 2, leftY + leftH - 34, 0xFF000000 | 0x666666);
         }
     }
 
     private void drawTabList(GuiGraphicsExtractor g, int mx, int my) {
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         int visibleRows = listH / ROW_H;
         int maxScroll   = Math.max(0, tabs.size() - visibleRows);
         scrollOffset    = Math.min(scrollOffset, maxScroll);
@@ -198,7 +183,7 @@ public class ServerTabsSettingsScreen extends Screen {
         if (mx >= leftX + 2 && mx < leftX + leftW - 2 && my >= listY && my < listY + listH) {
             int row = (int)((my - listY) / ROW_H);
             int tabIdx = row + scrollOffset;
-            List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+            List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
             if (tabIdx >= 0 && tabIdx < tabs.size()) {
                 selectedIndex = tabIdx;
                 refreshButtonStates();
@@ -211,7 +196,7 @@ public class ServerTabsSettingsScreen extends Screen {
     @Override
     public boolean mouseScrolled(double mx, double my, double scrollX, double scrollY) {
         if (mx >= leftX && mx < leftX + leftW && my >= leftY && my < leftY + leftH) {
-            List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+            List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
             int visibleRows = listH / ROW_H;
             int maxScroll   = Math.max(0, tabs.size() - visibleRows);
             scrollOffset    = Math.max(0, Math.min(maxScroll, scrollOffset - (int)Math.signum(scrollY)));
@@ -224,16 +209,16 @@ public class ServerTabsSettingsScreen extends Screen {
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
         boolean altDown = (event.modifiers() & GLFW.GLFW_MOD_ALT) != 0;
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
 
         if (altDown && selectedIndex >= 0 && selectedIndex < tabs.size()) {
             if (keyCode == GLFW.GLFW_KEY_UP && selectedIndex > 0 && !tabs.get(selectedIndex - 1).isLocked()) {
-                TabConfig.getInstance().moveTabUp(selectedIndex);
+                TabConfig.getInstance().moveWorldTabUp(selectedIndex);
                 selectedIndex--;
                 clampScrollToSelection();
                 return true;
             } else if (keyCode == GLFW.GLFW_KEY_DOWN && selectedIndex < tabs.size() - 1 && !tabs.get(selectedIndex).isLocked()) {
-                TabConfig.getInstance().moveTabDown(selectedIndex);
+                TabConfig.getInstance().moveWorldTabDown(selectedIndex);
                 selectedIndex++;
                 clampScrollToSelection();
                 return true;
@@ -243,9 +228,9 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     private void openAddPopup() {
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "New Tab", "", name -> {
-            TabConfig.getInstance().addTab(name);
-            selectedIndex = TabConfig.getInstance().getTabs().size() - 1;
+        this.minecraft.setScreen(new TabNamePopupScreen(this, "New World Tab", "", name -> {
+            TabConfig.getInstance().addWorldTab(name);
+            selectedIndex = TabConfig.getInstance().getWorldTabs().size() - 1;
             clampScrollToSelection();
             refreshButtonStates();
             refreshDefaultTabBtn();
@@ -253,29 +238,29 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     private void openEditPopup() {
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         if (selectedIndex < 0 || selectedIndex >= tabs.size()) return;
         TabEntry tab = tabs.get(selectedIndex);
         if (tab.isLocked()) return;
         this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
-            TabConfig.getInstance().renameTab(tab, name);
+            TabConfig.getInstance().renameWorldTab(tab, name);
             refreshDefaultTabBtn();
         }));
     }
 
     private void deleteSelected() {
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         if (selectedIndex < 0 || selectedIndex >= tabs.size()) return;
         TabEntry tab = tabs.get(selectedIndex);
         if (tab.isLocked()) return;
-        TabConfig.getInstance().deleteTab(tab);
+        TabConfig.getInstance().deleteWorldTab(tab);
         if (selectedIndex >= tabs.size()) selectedIndex = tabs.size() - 1;
         refreshButtonStates();
         refreshDefaultTabBtn();
     }
 
     private void refreshButtonStates() {
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         boolean hasMovable = selectedIndex >= 0 && selectedIndex < tabs.size() && !tabs.get(selectedIndex).isLocked();
         editBtn.active   = hasMovable;
         deleteBtn.active = hasMovable;
@@ -283,21 +268,20 @@ public class ServerTabsSettingsScreen extends Screen {
 
     private void refreshDefaultTabBtn() { if (defaultTabBtn != null) defaultTabBtn.setMessage(Component.literal(defaultTabLabel())); }
 
-    private String dropdownLabel() { return TabConfig.getInstance().isDropdownEnabled() ? "ON" : "OFF"; }
-    private String worldTabsLabel() { return TabConfig.getInstance().isWorldTabsEnabled() ? "ON" : "OFF"; }
-    private String defaultTabLabel() { TabEntry def = TabConfig.getInstance().getDefaultTab(); return def != null ? def.getName() : "All"; }
-    private String rememberTabLabel() { return TabConfig.getInstance().isRememberTab() ? "ON" : "OFF"; }
-    private String assignOnAddLabel() { return TabConfig.getInstance().isAssignOnAdd() ? "ON" : "OFF"; }
+    private String dropdownLabel() { return TabConfig.getInstance().isWorldDropdownEnabled() ? "ON" : "OFF"; }
+    private String defaultTabLabel() { TabEntry def = TabConfig.getInstance().getWorldDefaultTab(); return def != null ? def.getName() : "All"; }
+    private String rememberTabLabel() { return TabConfig.getInstance().isWorldRememberTab() ? "ON" : "OFF"; }
+    private String assignOnAddLabel() { return TabConfig.getInstance().isWorldAssignOnAdd() ? "ON" : "OFF"; }
 
     private void cycleDefaultTab() {
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         if (tabs.isEmpty()) return;
-        String currentId = TabConfig.getInstance().getDefaultTabId();
+        String currentId = TabConfig.getInstance().getWorldDefaultTabId();
         int idx = 0;
         for (int i = 0; i < tabs.size(); i++) {
             if (tabs.get(i).getId().equals(currentId)) { idx = i; break; }
         }
-        TabConfig.getInstance().setDefaultTabId(tabs.get((idx + 1) % tabs.size()).getId());
+        TabConfig.getInstance().setWorldDefaultTabId(tabs.get((idx + 1) % tabs.size()).getId());
     }
 
     private void clampScrollToSelection() {
