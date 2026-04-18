@@ -1,7 +1,9 @@
 package com.servertabs;
 
 import com.servertabs.gui.AssignTabScreen;
+import com.servertabs.gui.AssignWorldScreen;
 import com.servertabs.gui.TabDropdownController;
+import com.servertabs.gui.WorldTabsDropdownController;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
@@ -11,13 +13,18 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
-import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
+import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.storage.LevelSummary;
 
 import org.lwjgl.glfw.GLFW;
 import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 public class ServerTabsClient implements ClientModInitializer {
@@ -25,21 +32,17 @@ public class ServerTabsClient implements ClientModInitializer {
     /**
      * Tracks controllers by JoinMultiplayerScreen INSTANCE.
      * WeakHashMap: when the screen is GC'd the entry is removed automatically.
-     *
-     * Events (afterRender, allowMouseClick) are registered only once per
-     * screen instance — this prevents duplicate listeners on reinit.
      */
     private static final WeakHashMap<Screen, TabDropdownController> controllers
             = new WeakHashMap<>();
 
+    /** Tracks world-tab controllers by SelectWorldScreen INSTANCE. */
+    private static final WeakHashMap<Screen, WorldTabsDropdownController> worldControllers
+            = new WeakHashMap<>();
+
     /**
      * Tracks which non-JMS screens have already received our injected button,
-     * to prevent adding duplicates when the screen reinits (e.g. returning
-     * from AssignTabScreen back to EditServerScreen).
-     *
-     * Bug 1 root fix: without this, AFTER_INIT fires again on EditServerScreen
-     * after AssignTabScreen closes, adding a second "Assign Tab" button and
-     * leaving the screen in an inconsistent state that breaks the JMS dropdown.
+     * to prevent adding duplicates when the screen reinits.
      */
     private static final WeakHashMap<Screen, Boolean> injectedScreens
             = new WeakHashMap<>();
@@ -49,6 +52,9 @@ public class ServerTabsClient implements ClientModInitializer {
      * new server was just added (Feature 3: Assign on Add).
      */
     private static int lastKnownServerCount = -1;
+
+    /** Tracks world IDs seen on the last SelectWorldScreen open, for assign-on-add. */
+    private static Set<String> lastKnownWorldIds = null;
 
     @Override
     public void onInitializeClient() {
@@ -62,7 +68,6 @@ public class ServerTabsClient implements ClientModInitializer {
             // ----------------------------------------------------------------
             if (screen instanceof JoinMultiplayerScreen jms) {
 
-                // Reuse or create the controller for this screen instance
                 TabDropdownController controller = controllers.get(screen);
                 if (controller == null) {
                     controller = new TabDropdownController(screen);
@@ -70,7 +75,6 @@ public class ServerTabsClient implements ClientModInitializer {
                     ScreenEvents.afterRender(screen).register(controller::onRender);
                     ScreenMouseEvents.allowMouseClick(screen).register(controller::onMouseClick);
 
-                    // Feature 4: Alt+W (prev tab) / Alt+S (next tab)
                     final TabDropdownController ctrl = controller;
                     ScreenKeyboardEvents.allowKeyPress(screen).register((s, keyEvent) -> {
                         if ((keyEvent.modifiers() & GLFW.GLFW_MOD_ALT) != 0) {
@@ -81,64 +85,112 @@ public class ServerTabsClient implements ClientModInitializer {
                     });
                 }
 
-                // createToggleButton() resets panelOpen/slideProgress (bug 1 fix)
                 Screens.getButtons(screen).add(controller.createToggleButton());
 
-                // ── Feature 3: Assign on Add ─────────────────────────────
-                // Check if a new server was just added by comparing the full
-                // (unfiltered) server count to what we saw last time.
+                // Feature: Assign on Add
                 if (TabConfig.getInstance().isAssignOnAdd()) {
                     ServerList servers = jms.servers;
                     if (servers != null) {
-                        servers.load(); // get full unfiltered count
+                        servers.load();
                         int currentCount = servers.size();
 
                         if (lastKnownServerCount >= 0
                                 && currentCount > lastKnownServerCount) {
-                            // A new server was added — get the last entry
                             ServerData newest = servers.get(currentCount - 1);
                             if (newest != null) {
                                 String ip   = newest.ip   != null ? newest.ip.trim()   : "";
                                 String name = newest.name != null ? newest.name.trim() : "";
-                                // Navigate to AssignTabScreen for the new server.
-                                // We post this via setScreen so the JMS fully
-                                // finishes initializing before we navigate away.
                                 final Screen jmsScreen = screen;
                                 client.execute(() ->
                                     client.setScreen(new AssignTabScreen(jmsScreen, ip, name))
                                 );
                                 lastKnownServerCount = currentCount;
-                                return; // skip applyTabFilter — we're navigating away
+                                return;
                             }
                         }
                         lastKnownServerCount = currentCount;
                     }
                 }
 
-                // Apply the active tab filter
                 TabDropdownController.applyTabFilter(jms, TabSessionState.getActiveTabId());
                 return;
             }
 
             // ----------------------------------------------------------------
-            // Main menu — reset tab + server count tracking if rememberTab OFF
+            // Singleplayer world list
+            // ----------------------------------------------------------------
+            if (screen instanceof SelectWorldScreen sws) {
+
+                if (!TabConfig.getInstance().isWorldTabsEnabled()) return;
+
+                WorldTabsDropdownController worldCtrl = worldControllers.get(screen);
+                if (worldCtrl == null) {
+                    worldCtrl = new WorldTabsDropdownController(screen);
+                    worldControllers.put(screen, worldCtrl);
+                    ScreenEvents.afterRender(screen).register(worldCtrl::onRender);
+                    ScreenMouseEvents.allowMouseClick(screen).register(worldCtrl::onMouseClick);
+
+                    final WorldTabsDropdownController wc = worldCtrl;
+                    ScreenKeyboardEvents.allowKeyPress(screen).register((s, keyEvent) -> {
+                        if ((keyEvent.modifiers() & GLFW.GLFW_MOD_ALT) != 0) {
+                            if (keyEvent.key() == GLFW.GLFW_KEY_W) { wc.switchTab(-1); return false; }
+                            if (keyEvent.key() == GLFW.GLFW_KEY_S) { wc.switchTab(+1); return false; }
+                        }
+                        return true;
+                    });
+                }
+
+                Screens.getButtons(screen).add(worldCtrl.createToggleButton());
+
+                // Feature: World Assign on Add — detect newly created worlds
+                if (TabConfig.getInstance().isWorldAssignOnAdd()) {
+                    WorldSelectionList worldList = findWorldList(sws);
+                    if (worldList != null) {
+                        Set<String> currentIds = collectWorldIds(worldList);
+                        if (lastKnownWorldIds != null && !currentIds.isEmpty()) {
+                            // Find IDs present now but not before
+                            for (String id : currentIds) {
+                                if (!lastKnownWorldIds.contains(id)) {
+                                    LevelSummary summary = findWorldSummary(worldList, id);
+                                    if (summary != null) {
+                                        lastKnownWorldIds = currentIds;
+                                        final Screen swsScreen = screen;
+                                        final LevelSummary s = summary;
+                                        client.execute(() ->
+                                            client.setScreen(new AssignWorldScreen(
+                                                swsScreen, s.getLevelId(), s.getLevelName()))
+                                        );
+                                        WorldTabsDropdownController.applyTabFilter(sws, WorldTabSessionState.getActiveTabId());
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        lastKnownWorldIds = currentIds;
+                    }
+                }
+
+                WorldTabsDropdownController.applyTabFilter(sws, WorldTabSessionState.getActiveTabId());
+                return;
+            }
+
+            // ----------------------------------------------------------------
+            // Main menu — reset tab tracking if remember is OFF
             // ----------------------------------------------------------------
             if (screen instanceof TitleScreen) {
                 if (!TabConfig.getInstance().isRememberTab()) {
                     TabSessionState.resetToDefault();
                 }
-                // Reset server count so we don't false-positive on next JMS open
+                if (!TabConfig.getInstance().isWorldRememberTab()) {
+                    WorldTabSessionState.resetToDefault();
+                }
                 lastKnownServerCount = -1;
+                lastKnownWorldIds    = null;
                 return;
             }
 
             // ----------------------------------------------------------------
             // Add/Edit server screen — inject "Assign Tab" button (once only)
-            //
-            // Bug 1 fix: we track which screen instances have already been
-            // injected. Without this, returning from AssignTabScreen causes
-            // AFTER_INIT to fire again on EditServerScreen, adding a second
-            // button and corrupting state that breaks the JMS tab dropdown.
             // ----------------------------------------------------------------
             if (injectedScreens.containsKey(screen)) return;
 
@@ -175,6 +227,88 @@ public class ServerTabsClient implements ClientModInitializer {
                     } catch (Exception e) {
                         return null;
                     }
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+        return null;
+    }
+
+    // -----------------------------------------------------------------------
+    //  Reflection helpers — world list
+    // -----------------------------------------------------------------------
+
+    private static WorldSelectionList findWorldList(SelectWorldScreen sws) {
+        Class<?> cls = sws.getClass();
+        while (cls != null && cls != Object.class) {
+            for (Field f : cls.getDeclaredFields()) {
+                if (WorldSelectionList.class.isAssignableFrom(f.getType())) {
+                    try {
+                        f.setAccessible(true);
+                        return (WorldSelectionList) f.get(sws);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+        return null;
+    }
+
+    /** Collects all level IDs currently visible in the world list. */
+    private static Set<String> collectWorldIds(WorldSelectionList list) {
+        Set<String> ids = new HashSet<>();
+        List<?> children = getChildrenViaReflection(list);
+        if (children == null) return ids;
+        for (Object entry : children) {
+            LevelSummary summary = getLevelSummaryFromEntry(entry);
+            if (summary != null && summary.getLevelId() != null) {
+                ids.add(summary.getLevelId());
+            }
+        }
+        return ids;
+    }
+
+    /** Finds the LevelSummary with the given level ID in the world list. */
+    private static LevelSummary findWorldSummary(WorldSelectionList list, String levelId) {
+        List<?> children = getChildrenViaReflection(list);
+        if (children == null) return null;
+        for (Object entry : children) {
+            LevelSummary summary = getLevelSummaryFromEntry(entry);
+            if (summary != null && levelId.equals(summary.getLevelId())) return summary;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<?> getChildrenViaReflection(Object obj) {
+        Class<?> cls = obj.getClass();
+        while (cls != null && cls != Object.class) {
+            for (Field f : cls.getDeclaredFields()) {
+                if (List.class.isAssignableFrom(f.getType())) {
+                    try {
+                        f.setAccessible(true);
+                        Object value = f.get(obj);
+                        if (value instanceof List) return (List<?>) value;
+                    } catch (Exception ignored) {}
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+        return null;
+    }
+
+    private static LevelSummary getLevelSummaryFromEntry(Object entry) {
+        if (entry == null) return null;
+        Class<?> cls = entry.getClass();
+        while (cls != null && cls != Object.class) {
+            for (Field f : cls.getDeclaredFields()) {
+                if (LevelSummary.class.isAssignableFrom(f.getType())) {
+                    try {
+                        f.setAccessible(true);
+                        return (LevelSummary) f.get(entry);
+                    } catch (Exception ignored) {}
                 }
             }
             cls = cls.getSuperclass();

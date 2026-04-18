@@ -11,27 +11,26 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 
 /**
- * Shows a list of tabs with checkboxes.
- * Tick/untick any non-locked tab to assign or unassign the server.
- * Every toggle saves immediately to TabConfig.
+ * Shows a list of world tabs with checkboxes.
+ * Tick/untick any non-locked tab to assign or unassign the world.
  *
- * "All" is always ticked and cannot be unticked — every server is always in All.
+ * "All" is always ticked and cannot be unticked — every world is always in All.
  */
-public class AssignTabScreen extends Screen {
+public class AssignWorldScreen extends Screen {
 
     private static final int ROW_H    = 22;
     private static final int BOX_SIZE = 11;
     private static final int PANEL_W  = 220;
 
     private final Screen parent;
-    private final String serverIp;
-    private final String serverName;
+    private final String worldId;
+    private final String worldName;
 
-    public AssignTabScreen(Screen parent, String serverIp, String serverName) {
-        super(Component.literal("Assign to Tabs"));
-        this.parent     = parent;
-        this.serverIp   = serverIp;
-        this.serverName = serverName;
+    public AssignWorldScreen(Screen parent, String worldId, String worldName) {
+        super(Component.literal("Assign World to Tabs"));
+        this.parent    = parent;
+        this.worldId   = worldId;
+        this.worldName = worldName;
     }
 
     // -----------------------------------------------------------------------
@@ -49,8 +48,8 @@ public class AssignTabScreen extends Screen {
         this.addRenderableWidget(Button.builder(
                 Component.literal("Deselect All"),
                 btn -> {
-                    if (!serverIp.isEmpty()) {
-                        TabConfig.getInstance().deselectAllServerTabs(serverIp);
+                    if (!worldId.isEmpty()) {
+                        TabConfig.getInstance().deselectAllWorldTabs(worldId);
                     }
                 })
                 .bounds(this.width / 2 - 50, this.height - 55, 100, 20)
@@ -65,24 +64,24 @@ public class AssignTabScreen extends Screen {
     public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
         super.renderBackground(g, mx, my, pt);
 
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;
         int px     = (this.width  - PANEL_W) / 2;
         int py     = (this.height - panelH)  / 2;
 
-        g.fill(px,              py,              px + PANEL_W, py + panelH, 0xEE101010);
-        g.fill(px,              py,              px + PANEL_W, py + 1,      0xFF666666);
-        g.fill(px,              py + panelH - 1, px + PANEL_W, py + panelH, 0xFF666666);
-        g.fill(px,              py,              px + 1,        py + panelH, 0xFF666666);
-        g.fill(px + PANEL_W - 1, py,             px + PANEL_W, py + panelH, 0xFF666666);
-        g.fill(px + 1, py + 18, px + PANEL_W - 1, py + 19, 0xFF444444);
+        g.fill(px,               py,              px + PANEL_W, py + panelH, 0xEE101010);
+        g.fill(px,               py,              px + PANEL_W, py + 1,      0xFF666666);
+        g.fill(px,               py + panelH - 1, px + PANEL_W, py + panelH, 0xFF666666);
+        g.fill(px,               py,              px + 1,        py + panelH, 0xFF666666);
+        g.fill(px + PANEL_W - 1, py,              px + PANEL_W,  py + panelH, 0xFF666666);
+        g.fill(px + 1, py + 18,  px + PANEL_W - 1, py + 19, 0xFF444444);
     }
 
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
         super.render(g, mx, my, pt);
 
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;
         int px     = (this.width  - PANEL_W) / 2;
         int py     = (this.height - panelH)  / 2;
@@ -90,18 +89,18 @@ public class AssignTabScreen extends Screen {
         // Title
         g.drawCenteredString(this.font, this.title, this.width / 2, py + 5, 0xFFFFFFFF);
 
-        // Server subtitle
-        String subtitle = serverName.isEmpty() ? serverIp : serverName + "  (" + serverIp + ")";
+        // World subtitle
+        String subtitle = worldName.isEmpty() ? worldId : worldName + "  (" + worldId + ")";
         if (this.font.width(subtitle) > PANEL_W - 16) {
-            subtitle = this.font.plainSubstrByWidth(subtitle, PANEL_W - 16) + "…";
+            subtitle = this.font.plainSubstrByWidth(subtitle, PANEL_W - 16) + "\u2026";
         }
         g.drawCenteredString(this.font, Component.literal(subtitle),
-                this.width / 2, py + 22, 0xFF000000 | 0x888888);
+                this.width / 2, py + 22, 0xFF888888);
 
-        // Warning if IP is empty
-        if (serverIp.isEmpty()) {
+        // Warning if world ID is empty
+        if (worldId.isEmpty()) {
             g.drawCenteredString(this.font,
-                    Component.literal("Fill in the server IP first!"),
+                    Component.literal("No world ID provided!"),
                     this.width / 2, py + 40, 0xFFFF5555);
             return;
         }
@@ -111,7 +110,7 @@ public class AssignTabScreen extends Screen {
             TabEntry tab     = tabs.get(i);
             int      rowX    = px + 10;
             int      rowY    = py + 32 + i * ROW_H;
-            boolean  checked = tab.isLocked() || TabConfig.getInstance().serverInTab(serverIp, tab.getId());
+            boolean  checked = tab.isLocked() || TabConfig.getInstance().worldInTab(worldId, tab.getId());
             boolean  locked  = tab.isLocked();
             boolean  hovered = !locked
                             && mx >= rowX && mx < px + PANEL_W - 10
@@ -135,9 +134,9 @@ public class AssignTabScreen extends Screen {
 
             // Tab name
             int labelX    = boxX + BOX_SIZE + 6;
-            int textColor = locked  ? 0xFF000000 | 0xFFDD88
-                          : checked ? 0xFF000000 | 0xFFFFFF
-                          :           0xFF000000 | 0xAAAAAA;
+            int textColor = locked  ? 0xFFFFDD88
+                          : checked ? 0xFFFFFFFF
+                          :           0xFFAAAAAA;
             g.drawString(this.font, tab.getName(),
                     labelX, rowY + (ROW_H - 8) / 2, textColor, false);
 
@@ -145,23 +144,23 @@ public class AssignTabScreen extends Screen {
             if (locked) {
                 int badge = labelX + this.font.width(tab.getName()) + 5;
                 g.drawString(this.font, "(always)", badge,
-                        rowY + (ROW_H - 8) / 2, 0xFF000000 | 0x555555, false);
+                        rowY + (ROW_H - 8) / 2, 0xFF555555, false);
             }
         }
     }
 
     // -----------------------------------------------------------------------
-    //  Input — uses MouseButtonEvent as required by 1.21.11 Fabric API
+    //  Input
     // -----------------------------------------------------------------------
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean bl) {
-        if (serverIp.isEmpty()) return super.mouseClicked(event, bl);
+        if (worldId.isEmpty()) return super.mouseClicked(event, bl);
 
         double mx = event.x();
         double my = event.y();
 
-        List<TabEntry> tabs = TabConfig.getInstance().getTabs();
+        List<TabEntry> tabs = TabConfig.getInstance().getWorldTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;
         int px     = (this.width  - PANEL_W) / 2;
         int py     = (this.height - panelH)  / 2;
@@ -173,7 +172,7 @@ public class AssignTabScreen extends Screen {
             int rowY = py + 32 + i * ROW_H;
             if (mx >= px + 10 && mx < px + PANEL_W - 10
              && my >= rowY    && my < rowY + ROW_H) {
-                TabConfig.getInstance().toggleServerTab(serverIp, tab.getId());
+                TabConfig.getInstance().toggleWorldTab(worldId, tab.getId());
                 return true;
             }
         }

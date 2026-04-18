@@ -1,0 +1,16 @@
+# Gradle
+.gradle/
+build/
+gradlew
+gradlew.bat
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Fabric / Loom
+run/
+logs/
+*.class

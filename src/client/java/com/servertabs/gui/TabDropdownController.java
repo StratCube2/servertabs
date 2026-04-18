@@ -400,6 +400,7 @@ public class TabDropdownController {
     /**
      * Saves all checkbox states to TabConfig and exits Quick Assign mode.
      * For every server: if checked → assign; if unchecked → unassign.
+     * All mutations are batched and a single save() is issued at the end.
      */
     private void commitQuickAssign() {
         JoinMultiplayerScreen jms = (JoinMultiplayerScreen) screen;
@@ -410,11 +411,13 @@ public class TabDropdownController {
                 if (sd == null) continue;
                 String key = normalise(sd.ip);
                 if (quickAssignChecked.contains(key)) {
-                    TabConfig.getInstance().assignServer(sd.ip, quickAssignTabId);
+                    TabConfig.getInstance().assignServer(sd.ip, quickAssignTabId, false);
                 } else {
-                    TabConfig.getInstance().unassignServer(sd.ip, quickAssignTabId);
+                    TabConfig.getInstance().unassignServer(sd.ip, quickAssignTabId, false);
                 }
             }
+            // Single save after all mutations — performance fix
+            TabConfig.getInstance().save();
         }
 
         // Exit quick assign, restore the active tab filter
