@@ -243,6 +243,9 @@ public class WorldTabsDropdownController {
         }
     }
 
+    /** Empty-string supplier used as the search filter when reloading the world list. */
+    private static final Supplier<String> EMPTY_FILTER = () -> "";
+
     /** Attempts to refresh/reload the WorldSelectionList using reflection. */
     private static void tryRefreshList(WorldSelectionList list) {
         Class<?> cls = list.getClass();
@@ -255,9 +258,9 @@ public class WorldTabsDropdownController {
                             m.invoke(list);
                             return;
                         } else if (m.getParameterCount() == 2
-                                && m.getParameterTypes()[0] == java.util.function.Supplier.class
+                                && m.getParameterTypes()[0] == Supplier.class
                                 && m.getParameterTypes()[1] == boolean.class) {
-                            m.invoke(list, (java.util.function.Supplier<String>) () -> "", false);
+                            m.invoke(list, EMPTY_FILTER, false);
                             return;
                         }
                     } catch (Exception ignored) {

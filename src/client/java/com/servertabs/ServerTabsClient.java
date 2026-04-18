@@ -153,6 +153,9 @@ public class ServerTabsClient implements ClientModInitializer {
                                 if (!lastKnownWorldIds.contains(id)) {
                                     LevelSummary summary = findWorldSummary(worldList, id);
                                     if (summary != null) {
+                                        // Update tracking BEFORE navigating so that when the user
+                                        // returns from AssignWorldScreen and AFTER_INIT fires again,
+                                        // the new world ID is already known and won't re-trigger.
                                         lastKnownWorldIds = currentIds;
                                         final Screen swsScreen = screen;
                                         final LevelSummary s = summary;
