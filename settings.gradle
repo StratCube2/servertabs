@@ -8,6 +8,6 @@ pluginManagement {
     }
     plugins {
         // Use the remap variant for 1.21.11 (obfuscated)
-        id "net.fabricmc.fabric-loom-remap" version "1.14.+"
+        id "net.fabricmc.fabric-loom-remap" version "1.14-snapshot"
     }
 }
