@@ -12,20 +12,20 @@
   "icon": "assets/servertabs/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
+    "main":[
       "com.servertabs.ServerTabsMod"
     ],
-    "client": [
+    "client":[
       "com.servertabs.ServerTabsClient"
     ]
   },
-  "mixins": [
+  "mixins":[
     "servertabs.mixins.json"
   ],
   "accessWidener": "servertabs.accesswidener",
   "depends": {
     "fabricloader": ">=0.18.4",
     "fabric-api": "*",
-    "minecraft": "~26.1"
+    "minecraft": "~1.21.11"
   }
 }
