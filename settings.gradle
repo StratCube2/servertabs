@@ -7,7 +7,7 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
-        // 26.1 uses the new unobfuscated loom plugin
-        id "net.fabricmc.fabric-loom" version "1.15.+"
+        // Use the remap variant for 1.21.11 (obfuscated)
+        id "net.fabricmc.fabric-loom-remap" version "1.14.+"
     }
 }
