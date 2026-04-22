@@ -1,6 +1,5 @@
 plugins {
-    // 26.1: unobfuscated Loom — version declared in settings.gradle
-    id 'net.fabricmc.fabric-loom'
+    id 'net.fabricmc.fabric-loom-remap'
     id 'maven-publish'
 }
 
@@ -26,12 +25,13 @@ repositories {
 }
 
 dependencies {
-    // Minecraft — 26.1 is unobfuscated; no mappings line needed
+    // Minecraft 1.21.11 is obfuscated, so we use Mojang mappings to compile.
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
 
-    // Fabric Loader & API — use plain implementation (no remapping required for 26.1)
-    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // Fabric Loader & API (Must be `modImplementation` for remapping)
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 }
 
 processResources {
@@ -42,12 +42,12 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    it.options.release = 25
+    it.options.release = 21
     it.options.encoding = "UTF-8"
 }
 
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
