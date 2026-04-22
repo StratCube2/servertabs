@@ -1,6 +1,6 @@
 package com.servertabs.gui;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -39,7 +39,7 @@ public class EasterEggScreen extends Screen {
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
+    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
         // Dim the background without the full blur — keeps JMS visible behind
         g.fill(0, 0, this.width, this.height, 0x88000000);
 
@@ -55,8 +55,8 @@ public class EasterEggScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
-        super.extractRenderState(g, mx, my, pt);
+    public void render(GuiGraphics g, int mx, int my, float pt) {
+        super.render(g, mx, my, pt);
 
         int cx = this.width / 2;
         int py = (this.height - PANEL_H) / 2;

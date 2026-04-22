@@ -2,7 +2,7 @@ package com.servertabs.gui;
 
 import com.servertabs.TabConfig;
 import com.servertabs.TabEntry;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
@@ -123,8 +123,8 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
-        super.extractBackground(g, mx, my, pt);
+    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
+        super.renderBackground(g, mx, my, pt);
         drawPanel(g, leftX,  leftY,  leftW,  leftH);
         drawPanel(g, rightX, rightY, rightW, rightH);
         g.fill(leftX  + 1, leftY  + 14, leftX  + leftW  - 1, leftY  + 15, DIVIDER);
@@ -132,7 +132,7 @@ public class ServerTabsSettingsScreen extends Screen {
         g.fill(leftX + 1, leftY + leftH - 22, leftX + leftW - 1, leftY + leftH - 21, DIVIDER);
     }
 
-    private void drawPanel(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+    private void drawPanel(GuiGraphics g, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, PANEL_BG);
         g.fill(x, y, x + w, y + 1, PANEL_BORDER);
         g.fill(x, y + h - 1, x + w, y + h, PANEL_BORDER);
@@ -141,8 +141,8 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
-        super.extractRenderState(g, mx, my, pt);
+    public void render(GuiGraphics g, int mx, int my, float pt) {
+        super.render(g, mx, my, pt);
         g.centeredText(this.font, this.title, this.width / 2, 8, 0xFF000000 | 0xFFFFFF);
         g.text(this.font, "Tabs", leftX + 4, leftY + 4, 0xFF000000 | 0xFFFFFF, false);
         g.text(this.font, "Settings", rightX + 4, rightY + 4, 0xFF000000 | 0xFFFFFF, false);
@@ -164,7 +164,7 @@ public class ServerTabsSettingsScreen extends Screen {
         }
     }
 
-    private void drawTabList(GuiGraphicsExtractor g, int mx, int my) {
+    private void drawTabList(GuiGraphics g, int mx, int my) {
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         int visibleRows = listH / ROW_H;
         int maxScroll   = Math.max(0, tabs.size() - visibleRows);

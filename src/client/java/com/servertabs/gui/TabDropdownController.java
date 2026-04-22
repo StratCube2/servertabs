@@ -5,7 +5,7 @@ import com.servertabs.TabEntry;
 import com.servertabs.TabSessionState;
 import com.servertabs.ServerTabsMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -111,7 +111,7 @@ public class TabDropdownController {
         applyTabFilter((JoinMultiplayerScreen) screen, activeTabId);
     }
 
-    public void onRender(Screen s, GuiGraphicsExtractor gfx, int mouseX, int mouseY, float delta) {
+    public void onRender(Screen s, GuiGraphics gfx, int mouseX, int mouseY, float delta) {
         if (quickAssignMode) {
             renderQuickAssignOverlay(gfx, mouseX, mouseY);
             return; 
@@ -162,7 +162,7 @@ public class TabDropdownController {
         }
     }
 
-    private void renderQuickAssignOverlay(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
+    private void renderQuickAssignOverlay(GuiGraphics gfx, int mouseX, int mouseY) {
         JoinMultiplayerScreen jms = (JoinMultiplayerScreen) screen;
         ServerList            sl  = jms.servers;
         ServerSelectionList   ssl = jms.serverSelectionList;

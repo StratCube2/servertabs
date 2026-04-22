@@ -2,7 +2,7 @@ package com.servertabs.gui;
 
 import com.servertabs.TabConfig;
 import com.servertabs.TabEntry;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -52,8 +52,8 @@ public class AssignTabScreen extends Screen {
     // -----------------------------------------------------------------------
 
     @Override
-    public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float pt) {
-        super.extractBackground(g, mx, my, pt);
+    public void renderBackground(GuiGraphics g, int mx, int my, float pt) {
+        super.renderBackground(g, mx, my, pt);
 
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;
@@ -69,8 +69,8 @@ public class AssignTabScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float pt) {
-        super.extractRenderState(g, mx, my, pt);
+    public void render(GuiGraphics g, int mx, int my, float pt) {
+        super.render(g, mx, my, pt);
 
         List<TabEntry> tabs = TabConfig.getInstance().getTabs();
         int panelH = 32 + tabs.size() * ROW_H + 8;

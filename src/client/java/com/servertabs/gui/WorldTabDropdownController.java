@@ -5,7 +5,7 @@ import com.servertabs.TabEntry;
 import com.servertabs.WorldTabSessionState;
 import com.servertabs.ServerTabsMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
@@ -114,7 +114,7 @@ public class WorldTabDropdownController {
         applyTabFilter(activeTabId);
     }
 
-    public void onRender(Screen s, GuiGraphicsExtractor gfx, int mouseX, int mouseY, float delta) {
+    public void onRender(Screen s, GuiGraphics gfx, int mouseX, int mouseY, float delta) {
         if (quickAssignMode) {
             renderQuickAssignOverlay(gfx, mouseX, mouseY);
             return;
@@ -165,7 +165,7 @@ public class WorldTabDropdownController {
         }
     }
 
-    private void renderQuickAssignOverlay(GuiGraphicsExtractor gfx, int mouseX, int mouseY) {
+    private void renderQuickAssignOverlay(GuiGraphics gfx, int mouseX, int mouseY) {
         Object listWidget = getListWidget(screen);
         if (listWidget == null) return;
 
