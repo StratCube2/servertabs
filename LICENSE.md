@@ -79,7 +79,7 @@ The Work is provided **"as is"**, without warranty of any kind — express or im
 
 ## 6. Governing Law and Jurisdiction
 
-This license shall be governed by and construed in accordance with the laws of **India**, without regard to its conflict of law provisions. Any disputes arising out of or in connection with this license shall be subject to the exclusive jurisdiction of the courts located in **[Your City/State], India**.
+This license shall be governed by and construed in accordance with the laws of **India**, without regard to its conflict of law provisions. Any disputes arising out of or in connection with this license shall be subject to the exclusive jurisdiction of the courts located in **Kerala, India**.
 
 ---
 
