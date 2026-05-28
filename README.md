@@ -56,4 +56,4 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the SL V1 License. See `LICENSE` for more information.
