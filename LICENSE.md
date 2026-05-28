@@ -40,7 +40,7 @@ Inability to include a hyperlink due to platform restrictions does not exempt yo
 
 ### 3.2 Same License — Distribution and Network Use (Required)
 
-Any Derivative Work that you **distribute** or make available via **Network Use** must be released under this same license — the Stratospheric License v1.0 — without modification to its terms. You may not apply additional restrictions beyond what this license already requires.
+Any Derivative Work that you **distribute** or make available via **Network Use** must be released under this same license — the Stratospheric License v1.0 — without modification to its terms and must be most visible to the end user as reference in URL, Credits screen, Store/Platform Listing. You may not apply additional restrictions beyond what this license already requires.
 
 This condition applies regardless of whether you transfer files to users directly. If users interact with a modified version of the Work over a network or server, the obligations of this section apply as if you had distributed it.
 
