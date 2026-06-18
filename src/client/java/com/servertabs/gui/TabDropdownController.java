@@ -72,7 +72,7 @@ public class TabDropdownController {
                     clickCount++;
                     if (clickCount >= EASTER_EGG_CLICKS) {
                         clickCount = 0;
-                        Minecraft.getInstance().setScreen(new EasterEggScreen(screen));
+                        Minecraft.getInstance().gui.setScreen(new EasterEggScreen(screen));
                     }
                 })
                 .bounds(4, 4, 60, 20)

@@ -80,7 +80,7 @@ public class ServerTabsSettingsScreen extends Screen {
         this.addRenderableWidget(worldTabsBtn);
 
         worldTabsGearBtn = Button.builder(Component.literal("\u2699"), btn -> {
-            this.minecraft.setScreen(new WorldTabsSettingsScreen(this));
+            this.minecraft.gui.setScreen(new WorldTabsSettingsScreen(this));
         }).bounds(rBtnX - 18, rightY + 42, 16, 14).build();
         this.addRenderableWidget(worldTabsGearBtn);
         // ----------------------------------------
@@ -117,7 +117,7 @@ public class ServerTabsSettingsScreen extends Screen {
         }).bounds(rBtnX, rightY + 142, rBtnW, 14).build();
         this.addRenderableWidget(assignOnAddBtn);
 
-        this.addRenderableWidget(Button.builder(Component.literal("Done"), btn -> this.minecraft.setScreen(parent)).bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
+        this.addRenderableWidget(Button.builder(Component.literal("Done"), btn -> this.minecraft.gui.setScreen(parent)).bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
 
         refreshButtonStates();
     }
@@ -243,7 +243,7 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     private void openAddPopup() {
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "New Tab", "", name -> {
+        this.minecraft.gui.setScreen(new TabNamePopupScreen(this, "New Tab", "", name -> {
             TabConfig.getInstance().addTab(name);
             selectedIndex = TabConfig.getInstance().getTabs().size() - 1;
             clampScrollToSelection();
@@ -257,7 +257,7 @@ public class ServerTabsSettingsScreen extends Screen {
         if (selectedIndex < 0 || selectedIndex >= tabs.size()) return;
         TabEntry tab = tabs.get(selectedIndex);
         if (tab.isLocked()) return;
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
+        this.minecraft.gui.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
             TabConfig.getInstance().renameTab(tab, name);
             refreshDefaultTabBtn();
         }));
@@ -307,5 +307,5 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     @Override public boolean shouldCloseOnEsc() { return true; }
-    @Override public void    onClose()          { this.minecraft.setScreen(parent); }
+    @Override public void    onClose()          { this.minecraft.gui.setScreen(parent); }
 }

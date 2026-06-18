@@ -33,7 +33,7 @@ public class EasterEggScreen extends Screen {
 
         this.addRenderableWidget(Button.builder(
                 Component.literal("ok fine"),
-                btn -> this.minecraft.setScreen(parent))
+                btn -> this.minecraft.gui.setScreen(parent))
                 .bounds(px + PANEL_W / 2 - 30, py + PANEL_H - 24, 60, 16)
                 .build());
     }
@@ -66,7 +66,7 @@ public class EasterEggScreen extends Screen {
     }
 
     @Override public boolean shouldCloseOnEsc() { return true; }
-    @Override public void    onClose()          { this.minecraft.setScreen(parent); }
+    @Override public void    onClose()          { this.minecraft.gui.setScreen(parent); }
 
     // Block clicks from passing through to the screen behind
     @Override

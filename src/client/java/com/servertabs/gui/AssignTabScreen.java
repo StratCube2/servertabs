@@ -42,7 +42,7 @@ public class AssignTabScreen extends Screen {
     protected void init() {
         this.addRenderableWidget(Button.builder(
                 Component.literal("Done"),
-                btn -> this.minecraft.setScreen(parent))
+                btn -> this.minecraft.gui.setScreen(parent))
                 .bounds(this.width / 2 - 50, this.height - 30, 100, 20)
                 .build());
     }
@@ -171,5 +171,5 @@ public class AssignTabScreen extends Screen {
     }
 
     @Override public boolean shouldCloseOnEsc() { return true; }
-    @Override public void    onClose()          { this.minecraft.setScreen(parent); }
+    @Override public void    onClose()          { this.minecraft.gui.setScreen(parent); }
 }

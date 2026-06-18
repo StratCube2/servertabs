@@ -103,7 +103,7 @@ public class WorldTabsSettingsScreen extends Screen {
         }).bounds(rBtnX, rightY + 122, rBtnW, 14).build();
         this.addRenderableWidget(assignOnAddBtn);
 
-        this.addRenderableWidget(Button.builder(Component.literal("Done"), btn -> this.minecraft.setScreen(parent)).bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
+        this.addRenderableWidget(Button.builder(Component.literal("Done"), btn -> this.minecraft.gui.setScreen(parent)).bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
 
         refreshButtonStates();
     }
@@ -228,7 +228,7 @@ public class WorldTabsSettingsScreen extends Screen {
     }
 
     private void openAddPopup() {
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "New World Tab", "", name -> {
+        this.minecraft.gui.setScreen(new TabNamePopupScreen(this, "New World Tab", "", name -> {
             TabConfig.getInstance().addWorldTab(name);
             selectedIndex = TabConfig.getInstance().getWorldTabs().size() - 1;
             clampScrollToSelection();
@@ -242,7 +242,7 @@ public class WorldTabsSettingsScreen extends Screen {
         if (selectedIndex < 0 || selectedIndex >= tabs.size()) return;
         TabEntry tab = tabs.get(selectedIndex);
         if (tab.isLocked()) return;
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
+        this.minecraft.gui.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
             TabConfig.getInstance().renameWorldTab(tab, name);
             refreshDefaultTabBtn();
         }));
@@ -291,5 +291,5 @@ public class WorldTabsSettingsScreen extends Screen {
     }
 
     @Override public boolean shouldCloseOnEsc() { return true; }
-    @Override public void    onClose()          { this.minecraft.setScreen(parent); }
+    @Override public void    onClose()          { this.minecraft.gui.setScreen(parent); }
 }

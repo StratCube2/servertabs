@@ -39,7 +39,7 @@ public abstract class TitleScreenMixin extends Screen {
         this.addRenderableWidget(
             Button.builder(
                 Component.literal("\u2699"),          // ⚙ gear symbol (Unicode U+2699)
-                btn -> this.minecraft.setScreen(
+                btn -> this.minecraft.gui.setScreen(
                     new ServerTabsSettingsScreen(this) // open our settings screen
                 )
             )

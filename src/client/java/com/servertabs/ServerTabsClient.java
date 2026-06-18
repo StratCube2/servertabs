@@ -72,7 +72,7 @@ public class ServerTabsClient implements ClientModInitializer {
                                 String ip   = newest.ip   != null ? newest.ip.trim()   : "";
                                 String name = newest.name != null ? newest.name.trim() : "";
                                 final Screen jmsScreen = screen;
-                                client.execute(() -> client.setScreen(new AssignTabScreen(jmsScreen, ip, name)));
+                                client.execute(() -> client.gui.setScreen(new AssignTabScreen(jmsScreen, ip, name)));
                                 lastKnownServerCount = currentCount;
                                 return; 
                             }
@@ -138,7 +138,7 @@ public class ServerTabsClient implements ClientModInitializer {
                         btn -> {
                             String ip   = sd.ip   != null ? sd.ip.trim()   : "";
                             String name = sd.name != null ? sd.name.trim() : "";
-                            client.setScreen(new AssignTabScreen(screen, ip, name));
+                            client.gui.setScreen(new AssignTabScreen(screen, ip, name));
                         })
                         .bounds(scaledWidth / 2 + 4 + 105, 10, 100, 16)
                         .build();
@@ -161,7 +161,7 @@ public class ServerTabsClient implements ClientModInitializer {
                     Button assignBtn = Button.builder(
                             Component.literal("Assign Tab"),
                             btn -> {
-                                client.setScreen(new AssignWorldTabScreen(screen, wId, wName));
+                                client.gui.setScreen(new AssignWorldTabScreen(screen, wId, wName));
                             })
                             .bounds(scaledWidth / 2 + 4 + 105, 10, 100, 16)
                             .build();

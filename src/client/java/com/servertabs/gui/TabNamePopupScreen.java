@@ -60,7 +60,7 @@ public class TabNamePopupScreen extends Screen {
         // Cancel
         this.addRenderableWidget(Button.builder(
                 Component.literal("Cancel"),
-                btn -> this.minecraft.setScreen(parent))
+                btn -> this.minecraft.gui.setScreen(parent))
                 .bounds(px + 96, py + 46, 76, 18)
                 .build());
     }
@@ -70,7 +70,7 @@ public class TabNamePopupScreen extends Screen {
         if (!value.isEmpty()) {
             onConfirm.accept(value);
         }
-        this.minecraft.setScreen(parent);
+        this.minecraft.gui.setScreen(parent);
     }
 
     // -----------------------------------------------------------------------
@@ -116,7 +116,7 @@ public class TabNamePopupScreen extends Screen {
             return true;
         }
         if (keyCode == 256) { // Escape
-            this.minecraft.setScreen(parent);
+            this.minecraft.gui.setScreen(parent);
             return true;
         }
         return super.keyPressed(event);
