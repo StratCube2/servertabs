@@ -16,8 +16,8 @@ public class EasterEggScreen extends Screen {
     private static final int PANEL_W = 220;
     private static final int PANEL_H = 80;
 
-    private static final String MESSAGE_LINE_1 = "bro clicked the button";
-    private static final String MESSAGE_LINE_2 = "10 times... Zleo lowk stupid";
+    private static final String MESSAGE_LINE_1 = "How did you do that?";
+    private static final String MESSAGE_LINE_2 = "Well, you should probably get back to minin' n' craftin'";
 
     private final Screen parent;
 
@@ -32,7 +32,7 @@ public class EasterEggScreen extends Screen {
         int py = (this.height - PANEL_H) / 2;
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("ok fine"),
+                Component.literal("ok ig"),
                 btn -> this.minecraft.setScreen(parent))
                 .bounds(px + PANEL_W / 2 - 30, py + PANEL_H - 24, 60, 16)
                 .build());

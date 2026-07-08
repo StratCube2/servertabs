@@ -3,7 +3,6 @@ package com.servertabs.gui;
 import com.servertabs.TabConfig;
 import com.servertabs.TabEntry;
 import com.servertabs.TabSessionState;
-import com.servertabs.ServerTabsMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -144,17 +143,28 @@ public class TabDropdownController {
 
             boolean isActive  = tab.getId().equals(activeTabId);
             boolean isHovered = mouseX >= tabX && mouseX < tabX + tabW && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT;
+            int parsedColor   = tab.getParsedColor();
 
             int bgColor = isActive  ? 0xFF3A5C3A : isHovered ? 0xFF2E3A58 : 0xFF222222;
             gfx.fill(tabX, tabY, tabX + tabW, tabY + TAB_HEIGHT, bgColor);
 
-            int borderC = isActive ? 0xFF66BB66 : 0xFF404040;
+            int borderC = isActive ? (parsedColor & 0x00FFFFFF | 0xFF000000) : 0xFF404040;
             gfx.fill(tabX, tabY, tabX + tabW, tabY + 1, borderC);
             gfx.fill(tabX, tabY + TAB_HEIGHT - 1, tabX + tabW, tabY + TAB_HEIGHT, borderC);
             gfx.fill(tabX, tabY, tabX + 1, tabY + TAB_HEIGHT, borderC);
             gfx.fill(tabX + tabW - 1, tabY, tabX + tabW, tabY + TAB_HEIGHT, borderC);
 
-            gfx.text(Minecraft.getInstance().font, tab.getName(), tabX + 6, tabY + (TAB_HEIGHT - 8) / 2, isActive ? 0xFF000000 | 0xFFFFFF : 0xFF000000 | 0xAAAAAA, false);
+            if (isActive) {
+                // Accent highlighting for active tab
+                gfx.fill(tabX, tabY, tabX + 3, tabY + TAB_HEIGHT, borderC);
+            } else {
+                // Dot indicator for inactive tabs
+                int dotSize = 4;
+                gfx.fill(tabX + 4, tabY + (TAB_HEIGHT - dotSize) / 2, tabX + 4 + dotSize, tabY + (TAB_HEIGHT + dotSize) / 2, parsedColor);
+            }
+
+            int textOffset = isActive ? 8 : 12;
+            gfx.text(Minecraft.getInstance().font, tab.getName(), tabX + textOffset, tabY + (TAB_HEIGHT - 8) / 2, isActive ? 0xFF000000 | 0xFFFFFF : 0xFF000000 | 0xAAAAAA, false);
 
             if (isHovered && !isActive && !tab.isLocked() && "all".equals(activeTabId)) {
                 gfx.text(Minecraft.getInstance().font, "[Alt]", tabX + tabW - 28, tabY + (TAB_HEIGHT - 8) / 2, 0xFF000000 | 0x777777, false);
@@ -417,6 +427,4 @@ public class TabDropdownController {
 
     private static float easeInOut(float t) { return t * t * (3f - 2f * t); }
     private static String normalise(String ip) { return ip == null ? "" : ip.trim().toLowerCase(Locale.ROOT); }
-    public String getActiveTabId() { return activeTabId; }
-    public boolean isQuickAssignMode() { return quickAssignMode; }
 }

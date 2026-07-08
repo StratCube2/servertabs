@@ -72,7 +72,6 @@ public class ServerTabsSettingsScreen extends Screen {
         }).bounds(rBtnX, rightY + 22, rBtnW, 14).build();
         this.addRenderableWidget(dropdownBtn);
 
-        // --- NEW WORLD TABS CONFIGURATION ROW ---
         worldTabsBtn = Button.builder(Component.literal(worldTabsLabel()), btn -> {
             TabConfig.getInstance().setWorldTabsEnabled(!TabConfig.getInstance().isWorldTabsEnabled());
             btn.setMessage(Component.literal(worldTabsLabel()));
@@ -83,7 +82,6 @@ public class ServerTabsSettingsScreen extends Screen {
             this.minecraft.setScreen(new WorldTabsSettingsScreen(this));
         }).bounds(rBtnX - 18, rightY + 42, 16, 14).build();
         this.addRenderableWidget(worldTabsGearBtn);
-        // ----------------------------------------
 
         speedBtn = Button.builder(Component.literal(TabConfig.getInstance().getTransitionSpeed().label), btn -> {
             TabConfig.TransitionSpeed next = TabConfig.getInstance().getTransitionSpeed().next();
@@ -183,10 +181,15 @@ public class ServerTabsSettingsScreen extends Screen {
             int bg = isSelected ? 0xFF2A4A2A : isHovered ? 0xFF1E2E3E : 0x00000000;
             if (bg != 0) g.fill(rowX, rowY, rowX + rowW, rowY + ROW_H, bg);
             if (isSelected) g.fill(rowX, rowY, rowX + 2, rowY + ROW_H, 0xFF55BB55);
+            
+            // Draw Color Dot
+            int colorDotSize = 4;
+            int dotY = rowY + (ROW_H - colorDotSize) / 2;
+            g.fill(rowX + 6, dotY, rowX + 6 + colorDotSize, dotY + colorDotSize, tab.getParsedColor());
 
             String label = tab.isLocked() ? "\u2605 " + tab.getName() : tab.getName();
             int textColor = tab.isLocked() ? (isSelected ? 0xFF000000 | 0xFFFFAA : 0xFF000000 | 0xFFDD88) : (isSelected ? 0xFF000000 | 0xFFFFFF : 0xFF000000 | 0xCCCCCC);
-            g.text(this.font, label, rowX + 6, rowY + (ROW_H - 8) / 2, textColor, false);
+            g.text(this.font, label, rowX + 14, rowY + (ROW_H - 8) / 2, textColor, false);
         }
         if (scrollOffset > 0) g.text(this.font, "\u25B2", leftX + leftW - 10, listY + 2, 0xFF000000 | 0x888888, false);
         if (scrollOffset < maxScroll) g.text(this.font, "\u25BC", leftX + leftW - 10, listY + listH - 10, 0xFF000000 | 0x888888, false);
@@ -243,8 +246,8 @@ public class ServerTabsSettingsScreen extends Screen {
     }
 
     private void openAddPopup() {
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "New Tab", "", name -> {
-            TabConfig.getInstance().addTab(name);
+        this.minecraft.setScreen(new TabNamePopupScreen(this, "New Tab", "", "#FFFFFF", (name, color) -> {
+            TabConfig.getInstance().addTab(name, color);
             selectedIndex = TabConfig.getInstance().getTabs().size() - 1;
             clampScrollToSelection();
             refreshButtonStates();
@@ -257,8 +260,9 @@ public class ServerTabsSettingsScreen extends Screen {
         if (selectedIndex < 0 || selectedIndex >= tabs.size()) return;
         TabEntry tab = tabs.get(selectedIndex);
         if (tab.isLocked()) return;
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
-            TabConfig.getInstance().renameTab(tab, name);
+        
+        this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), tab.getColor(), (name, color) -> {
+            TabConfig.getInstance().renameTab(tab, name, color);
             refreshDefaultTabBtn();
         }));
     }

@@ -199,9 +199,9 @@ public class TabConfig {
     private void applyDefaults() {
         // Servers
         tabs.clear();
-        tabs.add(new TabEntry("all",       "All",       true));
-        tabs.add(new TabEntry("friends",   "Friends",   false));
-        tabs.add(new TabEntry("favorites", "Favorites", false));
+        tabs.add(new TabEntry("all",       "All",       true,  "#FFFFFF"));
+        tabs.add(new TabEntry("friends",   "Friends",   false, "#55FF55"));
+        tabs.add(new TabEntry("favorites", "Favorites", false, "#FFFF55"));
         dropdownEnabled      = true;
         transitionSpeed      = TransitionSpeed.MEDIUM;
         sortingType          = SortingType.NONE;
@@ -213,9 +213,9 @@ public class TabConfig {
         // Worlds
         worldTabsEnabled     = true;
         worldTabs.clear();
-        worldTabs.add(new TabEntry("all",       "All",       true));
-        worldTabs.add(new TabEntry("creative",  "Creative",  false));
-        worldTabs.add(new TabEntry("survival",  "Survival",  false));
+        worldTabs.add(new TabEntry("all",       "All",       true,  "#FFFFFF"));
+        worldTabs.add(new TabEntry("creative",  "Creative",  false, "#55FFFF"));
+        worldTabs.add(new TabEntry("survival",  "Survival",  false, "#FF5555"));
         worldDropdownEnabled = true;
         worldTransitionSpeed = TransitionSpeed.MEDIUM;
         worldSortingType     = WorldSortingType.NONE;
@@ -227,9 +227,9 @@ public class TabConfig {
 
     private void ensureAllTab() {
         if (tabs.stream().noneMatch(t -> "all".equals(t.getId())))
-            tabs.add(0, new TabEntry("all", "All", true));
+            tabs.add(0, new TabEntry("all", "All", true, "#FFFFFF"));
         if (worldTabs.stream().noneMatch(t -> "all".equals(t.getId())))
-            worldTabs.add(0, new TabEntry("all", "All", true));
+            worldTabs.add(0, new TabEntry("all", "All", true, "#FFFFFF"));
     }
 
     // -----------------------------------------------------------------------
@@ -255,11 +255,17 @@ public class TabConfig {
     public void setRememberTab(boolean v)             { rememberTab = v;     save(); }
     public void setAssignOnAdd(boolean v)             { assignOnAdd = v;     save(); }
 
-    public void addTab(String name) {
+    public void addTab(String name, String color) {
         String id = name.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "_") + "_" + System.currentTimeMillis();
-        tabs.add(new TabEntry(id, name, false)); save();
+        tabs.add(new TabEntry(id, name, false, color)); save();
     }
-    public void renameTab(TabEntry tab, String newName) { if (!tab.isLocked()) { tab.setName(newName); save(); } }
+    public void renameTab(TabEntry tab, String newName, String newColor) { 
+        if (!tab.isLocked()) { 
+            tab.setName(newName); 
+            tab.setColor(newColor);
+            save(); 
+        } 
+    }
     public void deleteTab(TabEntry tab) {
         if (tab.isLocked()) return;
         String id = tab.getId();
@@ -322,11 +328,17 @@ public class TabConfig {
     public void setWorldRememberTab(boolean v)         { worldRememberTab = v; save(); }
     public void setWorldAssignOnAdd(boolean v)         { worldAssignOnAdd = v; save(); }
 
-    public void addWorldTab(String name) {
+    public void addWorldTab(String name, String color) {
         String id = name.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "_") + "_" + System.currentTimeMillis();
-        worldTabs.add(new TabEntry(id, name, false)); save();
+        worldTabs.add(new TabEntry(id, name, false, color)); save();
     }
-    public void renameWorldTab(TabEntry tab, String newName) { if (!tab.isLocked()) { tab.setName(newName); save(); } }
+    public void renameWorldTab(TabEntry tab, String newName, String newColor) { 
+        if (!tab.isLocked()) { 
+            tab.setName(newName); 
+            tab.setColor(newColor);
+            save(); 
+        } 
+    }
     public void deleteWorldTab(TabEntry tab) {
         if (tab.isLocked()) return;
         String id = tab.getId();

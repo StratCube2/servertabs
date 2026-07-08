@@ -32,7 +32,17 @@ public class AssignWorldTabScreen extends Screen {
         this.addRenderableWidget(Button.builder(
                 Component.literal("Done"),
                 btn -> this.minecraft.setScreen(parent))
-                .bounds(this.width / 2 - 50, this.height - 30, 100, 20)
+                .bounds(this.width / 2 - 105, this.height - 30, 100, 20)
+                .build());
+
+        this.addRenderableWidget(Button.builder(
+                Component.literal("+ New Tab"),
+                btn -> this.minecraft.setScreen(
+                        new TabNamePopupScreen(this, "New World Tab", "", "#FFFFFF", (name, color) -> {
+                            TabConfig.getInstance().addWorldTab(name, color);
+                        })
+                ))
+                .bounds(this.width / 2 + 5, this.height - 30, 100, 20)
                 .build());
     }
 
@@ -98,7 +108,12 @@ public class AssignWorldTabScreen extends Screen {
                 g.fill(boxX + 4, boxY + 2, boxX + BOX_SIZE - 1, boxY + 6, 0xFFFFFFFF);
             }
 
-            int labelX    = boxX + BOX_SIZE + 6;
+            int colorDotSize = 4;
+            g.fill(boxX + BOX_SIZE + 4, rowY + (ROW_H - colorDotSize) / 2, 
+                   boxX + BOX_SIZE + 4 + colorDotSize, rowY + (ROW_H + colorDotSize) / 2, 
+                   tab.getParsedColor());
+
+            int labelX    = boxX + BOX_SIZE + 12;
             int textColor = locked ? 0xFF000000 | 0xFFDD88 : checked ? 0xFF000000 | 0xFFFFFF : 0xFF000000 | 0xAAAAAA;
             
             g.text(this.font, tab.getName(), labelX, rowY + (ROW_H - 8) / 2, textColor, false);

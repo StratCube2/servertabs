@@ -3,18 +3,14 @@ package com.servertabs.gui;
 import com.servertabs.TabConfig;
 import com.servertabs.TabEntry;
 import com.servertabs.WorldTabSessionState;
-import com.servertabs.ServerTabsMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import org.lwjgl.glfw.GLFW;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 
 import java.lang.reflect.Field;
@@ -147,17 +143,26 @@ public class WorldTabDropdownController {
 
             boolean isActive  = tab.getId().equals(activeTabId);
             boolean isHovered = mouseX >= tabX && mouseX < tabX + tabW && mouseY >= tabY && mouseY < tabY + TAB_HEIGHT;
+            int parsedColor   = tab.getParsedColor();
 
             int bgColor = isActive ? 0xFF3A5C3A : isHovered ? 0xFF2E3A58 : 0xFF222222;
             gfx.fill(tabX, tabY, tabX + tabW, tabY + TAB_HEIGHT, bgColor);
 
-            int borderC = isActive ? 0xFF66BB66 : 0xFF404040;
+            int borderC = isActive ? (parsedColor & 0x00FFFFFF | 0xFF000000) : 0xFF404040;
             gfx.fill(tabX, tabY, tabX + tabW, tabY + 1, borderC);
             gfx.fill(tabX, tabY + TAB_HEIGHT - 1, tabX + tabW, tabY + TAB_HEIGHT, borderC);
             gfx.fill(tabX, tabY, tabX + 1, tabY + TAB_HEIGHT, borderC);
             gfx.fill(tabX + tabW - 1, tabY, tabX + tabW, tabY + TAB_HEIGHT, borderC);
 
-            gfx.text(Minecraft.getInstance().font, tab.getName(), tabX + 6, tabY + (TAB_HEIGHT - 8) / 2, isActive ? 0xFFFFFFFF : 0xFFAAAAAA, false);
+            if (isActive) {
+                gfx.fill(tabX, tabY, tabX + 3, tabY + TAB_HEIGHT, borderC);
+            } else {
+                int dotSize = 4;
+                gfx.fill(tabX + 4, tabY + (TAB_HEIGHT - dotSize) / 2, tabX + 4 + dotSize, tabY + (TAB_HEIGHT + dotSize) / 2, parsedColor);
+            }
+
+            int textOffset = isActive ? 8 : 12;
+            gfx.text(Minecraft.getInstance().font, tab.getName(), tabX + textOffset, tabY + (TAB_HEIGHT - 8) / 2, isActive ? 0xFFFFFFFF : 0xFFAAAAAA, false);
 
             if (isHovered && !isActive && !tab.isLocked() && "all".equals(activeTabId)) {
                 gfx.text(Minecraft.getInstance().font, "[Alt]", tabX + tabW - 28, tabY + (TAB_HEIGHT - 8) / 2, 0xFF000000 | 0x777777, false);
@@ -351,7 +356,6 @@ public class WorldTabDropdownController {
                 filtered.sort((a, b) -> getLevelNameSafe(a).compareToIgnoreCase(getLevelNameSafe(b)));
             }
 
-            // ICON FIX: Modify children field directly instead of replaceEntries.
             Field childrenField = getFieldUpwards(listWidget.getClass(), "children");
             if (childrenField != null && List.class.isAssignableFrom(childrenField.getType())) {
                 childrenField.setAccessible(true);
@@ -359,13 +363,11 @@ public class WorldTabDropdownController {
                 innerList.clear(); 
                 innerList.addAll(filtered);
 
-                // Reset Scroll Position so out-of-bounds doesn't freeze interactions
                 Method setScrollAmount = getMethodUpwards(listWidget.getClass(), "setScrollAmount", double.class);
                 if (setScrollAmount != null) {
                     setScrollAmount.invoke(listWidget, 0.0);
                 }
             } else {
-                // Failsafe fallback 
                 Method replaceMethod = getMethodUpwards(listWidget.getClass(), "replaceEntries", Collection.class);
                 if (replaceMethod != null) {
                     replaceMethod.setAccessible(true);
@@ -375,7 +377,6 @@ public class WorldTabDropdownController {
         } catch (Exception e) {}
     }
 
-    // Static Reflection Helpers Hardened 
     private static Object getListWidget(Screen s) {
         try {
             for (Field f : s.getClass().getDeclaredFields()) {
@@ -414,7 +415,7 @@ public class WorldTabDropdownController {
                 }
             }
         } catch (Exception e) {}
-        return "unknown_" + System.identityHashCode(entry); // Failsafe fallback to avoid "check one checks all" visual bug
+        return "unknown_" + System.identityHashCode(entry);
     }
 
     public static String getLevelNameSafe(Object entry) {
@@ -456,5 +457,4 @@ public class WorldTabDropdownController {
     }
 
     private static float easeInOut(float t) { return t * t * (3f - 2f * t); }
-    public String getActiveTabId() { return activeTabId; }
 }

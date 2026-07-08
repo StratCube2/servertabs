@@ -169,9 +169,13 @@ public class WorldTabsSettingsScreen extends Screen {
             if (bg != 0) g.fill(rowX, rowY, rowX + rowW, rowY + ROW_H, bg);
             if (isSelected) g.fill(rowX, rowY, rowX + 2, rowY + ROW_H, 0xFF55BB55);
 
+            int colorDotSize = 4;
+            int dotY = rowY + (ROW_H - colorDotSize) / 2;
+            g.fill(rowX + 6, dotY, rowX + 6 + colorDotSize, dotY + colorDotSize, tab.getParsedColor());
+
             String label = tab.isLocked() ? "\u2605 " + tab.getName() : tab.getName();
             int textColor = tab.isLocked() ? (isSelected ? 0xFF000000 | 0xFFFFAA : 0xFF000000 | 0xFFDD88) : (isSelected ? 0xFF000000 | 0xFFFFFF : 0xFF000000 | 0xCCCCCC);
-            g.text(this.font, label, rowX + 6, rowY + (ROW_H - 8) / 2, textColor, false);
+            g.text(this.font, label, rowX + 14, rowY + (ROW_H - 8) / 2, textColor, false);
         }
         if (scrollOffset > 0) g.text(this.font, "\u25B2", leftX + leftW - 10, listY + 2, 0xFF000000 | 0x888888, false);
         if (scrollOffset < maxScroll) g.text(this.font, "\u25BC", leftX + leftW - 10, listY + listH - 10, 0xFF000000 | 0x888888, false);
@@ -228,8 +232,8 @@ public class WorldTabsSettingsScreen extends Screen {
     }
 
     private void openAddPopup() {
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "New World Tab", "", name -> {
-            TabConfig.getInstance().addWorldTab(name);
+        this.minecraft.setScreen(new TabNamePopupScreen(this, "New World Tab", "", "#FFFFFF", (name, color) -> {
+            TabConfig.getInstance().addWorldTab(name, color);
             selectedIndex = TabConfig.getInstance().getWorldTabs().size() - 1;
             clampScrollToSelection();
             refreshButtonStates();
@@ -242,8 +246,9 @@ public class WorldTabsSettingsScreen extends Screen {
         if (selectedIndex < 0 || selectedIndex >= tabs.size()) return;
         TabEntry tab = tabs.get(selectedIndex);
         if (tab.isLocked()) return;
-        this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), name -> {
-            TabConfig.getInstance().renameWorldTab(tab, name);
+        
+        this.minecraft.setScreen(new TabNamePopupScreen(this, "Rename Tab", tab.getName(), tab.getColor(), (name, color) -> {
+            TabConfig.getInstance().renameWorldTab(tab, name, color);
             refreshDefaultTabBtn();
         }));
     }
